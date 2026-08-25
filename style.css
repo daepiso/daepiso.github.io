@@ -19,6 +19,12 @@
 
 * { box-sizing: border-box; }
 
+/* hidden 속성이 항상 이긴다.
+   .consent 처럼 display 를 지정한 요소는 브라우저 기본 display:none 을
+   덮어써서 숨겨지지 않는다. 그러면 투명한 막이 화면을 계속 가려
+   아래 버튼이 눌리지 않는다. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
