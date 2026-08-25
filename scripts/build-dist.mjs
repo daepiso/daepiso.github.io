@@ -5,12 +5,16 @@
 // 원본 CSV, .env, node_modules, git 기록 등은 올라가면 안 되므로
 // "필요한 것만 골라 담는" 방식으로 만든다. 제외 목록 방식은 실수하기 쉽다.
 
-import { mkdirSync, rmSync, copyFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import {
+  mkdirSync, rmSync, copyFileSync, readdirSync, existsSync, statSync,
+  readFileSync, writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const OUT = 'dist';
 
-const FILES = ['index.html', 'style.css'];
+const FILES = ['index.html', 'style.css', '.nojekyll'];
 const DIRS = ['src'];
 
 // src 안에서도 이건 빼야 한다. 예시 파일이라 배포할 이유가 없다.
@@ -27,6 +31,26 @@ function copyDir(from, to) {
   }
 }
 
+// 브라우저는 같은 주소의 파일을 한동안 재사용한다.
+// 그러면 앱을 고쳐도 사용자는 옛 화면을 계속 본다.
+// 재난 상황에 쓰는 앱에서는 위험하므로, 배포마다 주소 뒤에 버전을 붙인다.
+function version() {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+  } catch {
+    return String(Math.floor(Date.now() / 1000));
+  }
+}
+
+function stampVersion(htmlPath) {
+  const v = version();
+  const html = readFileSync(htmlPath, 'utf-8')
+    .replace(/(href="\.\/style\.css)"/, `$1?v=${v}"`)
+    .replace(/(src="\.\/src\/main\.js)"/, `$1?v=${v}"`);
+  writeFileSync(htmlPath, html, 'utf-8');
+  console.log(`버전 ${v} 를 붙였습니다.`);
+}
+
 function main() {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
@@ -40,6 +64,8 @@ function main() {
   if (!existsSync(join(OUT, 'src', 'config.js'))) {
     throw new Error('src/config.js 가 없습니다. config.example.js 를 복사해 키를 채우세요.');
   }
+
+  stampVersion(join(OUT, 'index.html'));
 
   let count = 0;
   let bytes = 0;
