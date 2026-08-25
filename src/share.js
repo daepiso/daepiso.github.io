@@ -14,3 +14,9 @@ export function buildSmsBody(shelter) {
 export function buildSmsHref(shelter) {
   return `sms:?body=${encodeURIComponent(buildSmsBody(shelter))}`;
 }
+
+// 문자 앱을 본문이 채워진 채로 연다. 보내기는 사용자가 직접 누른다.
+// 발송 비용이 들지 않고, 별도 가입도 필요 없다.
+export function openSmsApp(shelter) {
+  window.location.href = buildSmsHref(shelter);
+}

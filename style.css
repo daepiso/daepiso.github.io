@@ -1,0 +1,228 @@
+/* 어르신 기준
+   - 본문 최소 18px, 대피소 이름 23px
+   - 터치 대상 최소 높이 56px
+   - 명암비 7:1 이상 (WCAG AAA)
+   - 한 화면에 주요 행동은 하나 */
+
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #4a4a4a;
+  --line: #c4c4c4;
+  --primary: #0b5c3f;
+  --primary-fg: #ffffff;
+  --accent-bg: #dfebf8;
+  --accent-fg: #0a3a6b;
+  --danger: #9a2222;
+  --tap: 56px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--fg);
+  background: var(--bg);
+  padding-bottom: calc(var(--tap) + 40px);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── 머리말 */
+
+.header { padding: 16px 20px 10px; border-bottom: 1px solid var(--line); }
+.header__title { margin: 0; font-size: 26px; font-weight: 700; }
+.header__place { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
+
+/* ── 종류 필터 */
+
+.chips {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chip {
+  flex: none;
+  min-height: 48px;
+  padding: 0 18px;
+  font-size: 17px;
+  font-family: inherit;
+  color: var(--muted);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+  font-weight: 700;
+}
+
+/* ── 지도 */
+
+.map {
+  height: 220px;
+  background: #eeeeee;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.map--hidden { display: none; }
+
+/* ── 목록 */
+
+.list { padding: 16px 20px 0; }
+
+.card {
+  border: 2px solid var(--fg);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.card__name { margin: 0; font-size: 23px; font-weight: 700; line-height: 1.35; }
+.card__meta { margin: 8px 0 0; font-size: 19px; color: var(--fg); font-weight: 700; }
+.card__addr { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
+
+.card__count {
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 8px 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-fg);
+  background: var(--accent-bg);
+  border-radius: 10px;
+}
+
+.card .btn { margin-top: 14px; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  font-family: inherit;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.row__text { display: flex; flex-direction: column; gap: 3px; }
+.row__name { font-size: 20px; font-weight: 700; color: var(--fg); }
+.row__meta { font-size: 17px; color: var(--muted); }
+.row__chevron { font-size: 26px; color: var(--muted); }
+
+/* ── 버튼 */
+
+.btn {
+  min-height: var(--tap);
+  padding: 0 20px;
+  font-size: 19px;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--fg);
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-fg);
+  font-size: 21px;
+  min-height: 62px;
+}
+
+.btn--block { display: block; width: 100%; }
+.btn--wide { flex: 1; }
+.btn:active { transform: scale(0.99); }
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+/* ── 동네 이름으로 찾기 */
+
+.fallback { padding: 16px 20px 0; }
+.fallback__label { display: block; margin-bottom: 8px; font-weight: 700; }
+.fallback__row { display: flex; gap: 8px; }
+
+.fallback input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0 14px;
+  font-size: 19px;
+  font-family: inherit;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+}
+
+.fallback input:focus { outline: 3px solid var(--primary); outline-offset: 1px; }
+
+/* ── 안내 문구 */
+
+.notice {
+  padding: 18px 20px;
+  margin: 0 0 12px;
+  font-size: 19px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.error { margin: 10px 0 0; font-size: 17px; color: var(--danger); font-weight: 700; }
+
+/* ── 첫 진입 안내 */
+
+.consent {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.consent__box {
+  max-width: 420px;
+  padding: 24px;
+  background: var(--bg);
+  border-radius: 16px;
+}
+
+.consent__box h1 { margin: 0 0 12px; font-size: 26px; }
+.consent__box p { margin: 0 0 20px; }
+
+/* ── 접근성 */
+
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
