@@ -132,8 +132,9 @@ export function hideMap() {
   $('map').classList.add('map--hidden');
 }
 
-// 소리가 안 나는 브라우저(카카오톡·인스타 등 앱 안에서 열린 화면)를 위해
-// 같은 내용을 큰 글씨로 보여준다. 버튼을 숨기면 어르신은 헤매기만 한다.
+// 소리로 듣기를 누르면 곧바로 같은 내용을 큰 글씨로 보여준다.
+// 소리가 나는지 기다렸다가 보여주면 몇 초씩 아무 반응이 없어
+// 어르신은 버튼이 고장 났다고 생각한다.
 export function showSpokenText(text) {
   const box = $('spoken');
   box.innerHTML = '';
@@ -141,14 +142,28 @@ export function showSpokenText(text) {
   const main = document.createElement('span');
   main.className = 'spoken__text';
   main.textContent = text;
+  box.appendChild(main);
+
+  box.hidden = false;
+  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// 소리가 끝내 안 났을 때만 붙인다. 메뉴를 뒤지지 않고 한 번에 크롬으로 간다.
+export function showOpenInChrome(onOpen) {
+  const box = $('spoken');
+  if (box.hidden || box.querySelector('.spoken__open')) return;
 
   const hint = document.createElement('span');
   hint.className = 'spoken__hint';
-  hint.textContent = '이 화면에서는 소리가 나오지 않습니다. 소리로 들으시려면 크롬으로 열어주세요.';
+  hint.textContent = '이 화면에서는 소리가 나오지 않습니다.';
 
-  box.append(main, hint);
-  box.hidden = false;
-  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  const btn = document.createElement('button');
+  btn.className = 'btn spoken__open';
+  btn.type = 'button';
+  btn.textContent = '크롬에서 열기';
+  btn.addEventListener('click', onOpen);
+
+  box.append(hint, btn);
 }
 
 export function hideSpokenText() {

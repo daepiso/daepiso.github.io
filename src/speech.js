@@ -15,7 +15,9 @@ export function isSpeechSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
-const START_DEADLINE_MS = 1500;
+// 안드로이드 음성 엔진은 처음 켤 때 3초 가까이 걸리기도 한다.
+// 짧게 잡으면 될 것도 안 된다고 판단해 버린다.
+const START_DEADLINE_MS = 3500;
 
 // 읽어주기에 성공하면 true, 이 브라우저가 못 읽으면 false.
 // 호출한 쪽은 false 일 때 글씨로 대신 보여줘야 한다.

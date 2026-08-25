@@ -7,6 +7,7 @@ import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived } from './
 import { buildWalkDirectionsUrl } from './directions.js';
 import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
+import { openExternally } from './external.js';
 import { initMap, renderMarkers, isMapReady } from './map.js';
 import * as ui from './ui.js';
 
@@ -228,13 +229,18 @@ function startArrivalWatch(shelter) {
 // ─────────────────────────────── 버튼 배선
 
 function wireButtons() {
-  document.getElementById('speak').addEventListener('click', async () => {
+  document.getElementById('speak').addEventListener('click', () => {
     const top = state.shelters[0] ?? null;
     const text = buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0);
-    ui.hideSpokenText();
-    const spoke = await speak(text);
-    // 소리가 안 나는 브라우저에서는 같은 내용을 큰 글씨로 보여준다.
-    if (!spoke) ui.showSpokenText(text);
+
+    // 글씨는 곧바로 띄운다. 소리를 기다리게 하지 않는다.
+    ui.showSpokenText(text);
+
+    // speak() 를 await 없이 부른다. 기다렸다가 부르면 모바일 브라우저가
+    // '사용자가 누른 순간'이 아니라고 보고 재생을 거부한다.
+    speak(text).then((spoke) => {
+      if (!spoke) ui.showOpenInChrome(() => openExternally());
+    });
   });
 
   document.getElementById('share').addEventListener('click', () => {

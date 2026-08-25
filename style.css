@@ -243,10 +243,19 @@ body {
 
 .spoken__hint {
   display: block;
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
+}
+
+.spoken__open {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  color: var(--accent-fg);
+  border-color: var(--accent-fg);
+  background: var(--bg);
 }
 
 /* ── 접근성 */
