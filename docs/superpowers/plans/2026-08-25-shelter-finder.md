@@ -72,7 +72,7 @@ data/raw/
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.js\"",
     "serve": "npx --yes serve -l 5173 .",
     "import": "node scripts/import-shelters.mjs"
   },
@@ -126,8 +126,11 @@ cp src/config.example.js src/config.js && mkdir -p test
 
 - [ ] **Step 7: 테스트 러너 동작 확인**
 
-Run: `node --test test/`
+Run: `npm test`
 Expected: 테스트 0개, 종료 코드 0
+
+> Windows + Node 24 에서는 `node --test test/` 가 디렉터리를 모듈로 해석해 실패한다.
+> 반드시 glob 패턴(`test/**/*.test.js`)을 쓴다.
 
 - [ ] **Step 8: Commit**
 
@@ -368,7 +371,7 @@ export function buildSmsHref(shelter) {
 
 - [ ] **Step 4: 통과 확인**
 
-Run: `node --test test/`
+Run: `npm test`
 Expected: PASS, 18 tests
 
 - [ ] **Step 5: Commit**
@@ -947,7 +950,7 @@ export async function fetchNearbyShelters({ lat, lng, radiusM, categories }) {
 
 - [ ] **Step 4: 통과 확인**
 
-Run: `node --test test/`
+Run: `npm test`
 Expected: PASS, 25 tests
 
 - [ ] **Step 5: Commit**
@@ -1345,7 +1348,7 @@ export function speak(text) {
 
 - [ ] **Step 4: 통과 확인**
 
-Run: `node --test test/`
+Run: `npm test`
 Expected: PASS, 32 tests
 
 - [ ] **Step 5: Commit**
@@ -1527,7 +1530,7 @@ export async function unsubscribeCounts() {
 
 - [ ] **Step 2: 기존 테스트가 여전히 통과하는지 확인한다**
 
-Run: `node --test test/`
+Run: `npm test`
 Expected: PASS, 32 tests. `crypto.randomUUID`나 `localStorage`는 호출되지 않으므로 Node에서도 통과한다.
 
 - [ ] **Step 3: Commit**
