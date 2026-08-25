@@ -6,7 +6,10 @@
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
     "serve": "npx --yes serve -l 5173 .",
-    "import": "node --env-file=.env scripts/import-shelters.mjs"
+    "import": "node --env-file=.env scripts/import-shelters.mjs",
+    "build": "node scripts/build-dist.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
