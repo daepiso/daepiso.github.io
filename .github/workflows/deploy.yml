@@ -25,7 +25,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # 22 이상이어야 node --test 가 glob 패턴을 받는다
+          node-version: '22'
 
       - name: 테스트
         run: npm test
