@@ -132,8 +132,17 @@ export function hideMap() {
   $('map').classList.add('map--hidden');
 }
 
-export function setSpeakVisible(visible) {
-  $('speak').hidden = !visible;
+// 소리가 안 나는 브라우저(카카오톡·인스타 등 앱 안에서 열린 화면)를 위해
+// 같은 내용을 큰 글씨로 보여준다. 버튼을 숨기면 어르신은 헤매기만 한다.
+export function showSpokenText(text) {
+  const box = $('spoken');
+  box.textContent = text;
+  box.hidden = false;
+  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+export function hideSpokenText() {
+  $('spoken').hidden = true;
 }
 
 export function setBusy(busy) {

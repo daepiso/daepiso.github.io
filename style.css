@@ -225,6 +225,17 @@ body {
 .consent__box h1 { margin: 0 0 12px; font-size: 26px; }
 .consent__box p { margin: 0 0 20px; }
 
+.spoken {
+  margin: 0 20px 12px;
+  padding: 18px 20px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--accent-fg);
+  background: var(--accent-bg);
+  border-radius: 14px;
+}
+
 /* ── 접근성 */
 
 :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }

@@ -5,7 +5,7 @@ import { fetchNearbyShelters, cacheShelters, readCachedShelters } from './shelte
 import { getCurrentPosition, watchPosition, searchAddress, reverseGeocode } from './location.js';
 import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived } from './trips.js';
 import { buildWalkDirectionsUrl } from './directions.js';
-import { buildSpeechText, speak, isSpeechSupported } from './speech.js';
+import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
 import { initMap, renderMarkers, isMapReady } from './map.js';
 import * as ui from './ui.js';
@@ -25,7 +25,6 @@ const state = {
 async function boot() {
   await gateConsent();
   await loadKakao();
-  ui.setSpeakVisible(isSpeechSupported());
   ui.renderChips(state.categories, onToggleCategory);
   wireButtons();
   await locateAndSearch();
@@ -229,9 +228,13 @@ function startArrivalWatch(shelter) {
 // ─────────────────────────────── 버튼 배선
 
 function wireButtons() {
-  document.getElementById('speak').addEventListener('click', () => {
+  document.getElementById('speak').addEventListener('click', async () => {
     const top = state.shelters[0] ?? null;
-    speak(buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0));
+    const text = buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0);
+    ui.hideSpokenText();
+    const spoke = await speak(text);
+    // 소리가 안 나는 브라우저에서는 같은 내용을 큰 글씨로 보여준다.
+    if (!spoke) ui.showSpokenText(text);
   });
 
   document.getElementById('share').addEventListener('click', () => {
