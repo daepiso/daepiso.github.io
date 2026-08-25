@@ -1,0 +1,12 @@
+{
+  "name": "shelter-finder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "serve": "npx --yes serve -l 5173 .",
+    "import": "node --env-file=.env scripts/import-shelters.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
