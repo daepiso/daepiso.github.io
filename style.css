@@ -226,14 +226,27 @@ body {
 .consent__box p { margin: 0 0 20px; }
 
 .spoken {
+  display: block;
   margin: 0 20px 12px;
   padding: 18px 20px;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.5;
   color: var(--accent-fg);
   background: var(--accent-bg);
   border-radius: 14px;
+}
+
+.spoken__text {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.spoken__hint {
+  display: block;
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* ── 접근성 */

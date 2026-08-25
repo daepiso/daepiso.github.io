@@ -136,7 +136,17 @@ export function hideMap() {
 // 같은 내용을 큰 글씨로 보여준다. 버튼을 숨기면 어르신은 헤매기만 한다.
 export function showSpokenText(text) {
   const box = $('spoken');
-  box.textContent = text;
+  box.innerHTML = '';
+
+  const main = document.createElement('span');
+  main.className = 'spoken__text';
+  main.textContent = text;
+
+  const hint = document.createElement('span');
+  hint.className = 'spoken__hint';
+  hint.textContent = '이 화면에서는 소리가 나오지 않습니다. 소리로 들으시려면 크롬으로 열어주세요.';
+
+  box.append(main, hint);
   box.hidden = false;
   box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }

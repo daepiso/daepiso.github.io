@@ -15,51 +15,71 @@ export function isSpeechSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
-// 안드로이드에서는 목소리 목록이 늦게 채워진다.
-// 비어 있으면 한 번 기다렸다가 다시 시도한다.
-function waitForVoices(timeoutMs = 1000) {
-  return new Promise((resolve) => {
-    const synth = window.speechSynthesis;
-    if (synth.getVoices().length > 0) {
-      resolve();
-      return;
-    }
-    const done = () => {
-      synth.onvoiceschanged = null;
-      resolve();
-    };
-    synth.onvoiceschanged = done;
-    setTimeout(done, timeoutMs);
-  });
-}
+const START_DEADLINE_MS = 1500;
 
 // 읽어주기에 성공하면 true, 이 브라우저가 못 읽으면 false.
 // 호출한 쪽은 false 일 때 글씨로 대신 보여줘야 한다.
-export async function speak(text) {
-  if (!isSpeechSupported()) return false;
-  try {
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    await waitForVoices();
+//
+// 두 가지를 지켜야 모바일에서 소리가 난다.
+//
+// 1. speak() 를 클릭 처리 안에서 '기다림 없이' 곧바로 호출해야 한다.
+//    await 를 먼저 걸면 "사용자가 누른 순간"이라는 자격이 풀려서
+//    브라우저가 재생을 거부한다. 그래서 이 함수는 async 가 아니다.
+//
+// 2. 성공 판정은 onstart 로만 한다.
+//    인앱 브라우저는 speak() 를 접수만 해놓고 소리를 내지 않으면서
+//    speaking/pending 은 true 로 만들어 둔다. 그걸 성공으로 치면
+//    소리도 안 나고 대체 표시도 안 나오는 최악이 된다.
+export function speak(text) {
+  if (!isSpeechSupported()) return Promise.resolve(false);
 
-    const utter = new window.SpeechSynthesisUtterance(text);
+  const synth = window.speechSynthesis;
+  let utter;
+  try {
+    synth.cancel();
+    utter = new window.SpeechSynthesisUtterance(text);
     utter.lang = 'ko-KR';
     utter.rate = 0.9;
+  } catch {
+    return Promise.resolve(false);
+  }
 
+  // 한국어 목소리를 고르는 것은 '있으면 좋은' 일이다.
+  // 여기서 실패했다고 읽기 자체를 포기하면 안 된다. lang 만으로도 대개 읽는다.
+  try {
     const korean = synth.getVoices().find((v) => v.lang?.startsWith('ko'));
     if (korean) utter.voice = korean;
-
-    let started = false;
-    utter.onstart = () => { started = true; };
-    synth.speak(utter);
-
-    // 실제로 소리가 나기 시작했는지 확인한다.
-    // 인앱 브라우저는 speak() 를 받아만 놓고 아무것도 안 하는 경우가 있다.
-    await new Promise((r) => setTimeout(r, 600));
-    return started || synth.speaking || synth.pending;
   } catch {
-    return false;
+    /* 무시 */
   }
+
+  let started = false;
+  let failed = false;
+  utter.onstart = () => { started = true; };
+  utter.onerror = () => { failed = true; };
+
+  try {
+    synth.speak(utter);
+  } catch {
+    return Promise.resolve(false);
+  }
+
+  return new Promise((resolve) => {
+    const step = 100;
+    let waited = 0;
+    const tick = () => {
+      if (started) { resolve(true); return; }
+      if (failed) { resolve(false); return; }
+      waited += step;
+      if (waited >= START_DEADLINE_MS) {
+        try { synth.cancel(); } catch { /* 무시 */ }
+        resolve(false);
+        return;
+      }
+      setTimeout(tick, step);
+    };
+    setTimeout(tick, step);
+  });
 }
 
 export function stopSpeaking() {
