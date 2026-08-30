@@ -108,11 +108,17 @@ body {
   margin-bottom: 14px;
 }
 
+/* 작고 흐리게 뒀더니 눈에 들어오지 않는다는 지적을 받았다.
+   맨 위 카드가 왜 맨 위인지 알려주는 말이므로 또렷해야 한다. */
 .card__tag {
-  margin: 0 0 8px;
-  font-size: 16px;
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 6px 14px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--primary-fg);
+  background: var(--primary);
+  border-radius: 999px;
 }
 
 .card__name { margin: 0; font-size: 23px; font-weight: 700; line-height: 1.35; }
@@ -202,9 +208,19 @@ body {
 
 /* ── 동네 이름으로 찾기 */
 
-.fallback { padding: 16px 20px 0; }
-.fallback__label { display: block; margin-bottom: 8px; font-weight: 700; }
+/* 위치를 못 쓸 때 어르신이 다음에 뭘 해야 할지 한눈에 보여야 한다.
+   예전에는 이 칸이 목록 아래에 있어 스크롤해야 나왔다. */
+.fallback {
+  margin: 16px 20px 0;
+  padding: 18px;
+  border: 2px solid var(--primary);
+  border-radius: 14px;
+}
+
+.fallback__title { margin: 0 0 6px; font-size: 21px; font-weight: 700; }
+.fallback__help { margin: 0 0 14px; font-size: 18px; color: var(--muted); }
 .fallback__row { display: flex; gap: 8px; }
+.fallback__retry { width: 100%; margin-top: 12px; }
 
 .fallback input {
   flex: 1;

@@ -151,8 +151,14 @@ function summaryRow(shelter, count, handlers, activeShelterId) {
   return row;
 }
 
-export function showFallback(show) {
+// 위치를 이미 알아낸 뒤에도 '지금 계신 곳을 알 수 없습니다'가 떠 있으면
+// 머리말과 앞뒤가 맞지 않는다. 같은 칸을 다른 제목으로 다시 쓴다.
+export function showFallback(show, hasLocation = false) {
   $('fallback').hidden = !show;
+  if (!show) return;
+  $('fallback-title').textContent = hasLocation
+    ? '다른 동네로 찾기'
+    : '지금 계신 곳을 알 수 없습니다';
 }
 
 export function showAddressError(message) {

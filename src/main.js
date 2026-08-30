@@ -262,6 +262,12 @@ function wireButtons() {
     openSmsApp(target);
   });
 
+  document.getElementById('retry-location').addEventListener('click', () => {
+    ui.showAddressError(null);
+    ui.renderPlace('위치를 찾는 중…');
+    locateAndSearch();
+  });
+
   document.getElementById('addr-go').addEventListener('click', onAddressSearch);
   document.getElementById('addr').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') onAddressSearch();
@@ -279,6 +285,8 @@ async function onAddressSearch() {
     const place = await searchAddress(query);
     state.origin = { lat: place.lat, lng: place.lng };
     ui.renderPlace(place.label);
+    // 이제 위치를 아니 제목을 '다른 동네로 찾기'로 바꾼다.
+    ui.showFallback(true, true);
     await search();
   } catch (err) {
     ui.showAddressError(
