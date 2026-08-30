@@ -23,4 +23,5 @@ export const STORAGE_KEYS = {
   categories: 'shelter.categories',
   shelterCache: 'shelter.cache',
   activeTrip: 'shelter.activeTrip',
+  savedPlace: 'shelter.place',
 };

@@ -5,6 +5,10 @@
    - 한 화면에 주요 행동은 하나 */
 
 :root {
+  /* 어두운 화면을 쓰는 폰이 많다. 이 줄이 없으면 안드로이드가 제멋대로
+     색을 뒤집어 대비가 망가진다. 우리가 직접 두 벌을 정한다. */
+  color-scheme: light dark;
+
   --bg: #ffffff;
   --fg: #111111;
   --muted: #4a4a4a;
@@ -14,7 +18,24 @@
   --accent-bg: #dfebf8;
   --accent-fg: #0a3a6b;
   --danger: #9a2222;
+  --count-none-bg: #f0f0f0;
   --tap: 56px;
+}
+
+/* 어두운 화면. 밝은 화면과 같은 기준(명암비 7:1)을 지킨다. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111214;
+    --fg: #f5f5f5;
+    --muted: #c2c2c2;
+    --line: #55585c;
+    --primary: #4fc294;
+    --primary-fg: #0a1a13;
+    --accent-bg: #17304a;
+    --accent-fg: #b6d8f7;
+    --danger: #ff9b9b;
+    --count-none-bg: #26282c;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -90,7 +111,7 @@ body {
 
 .map {
   height: 220px;
-  background: #eeeeee;
+  background: var(--count-none-bg);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -139,7 +160,7 @@ body {
 /* 0명일 때는 조용한 색으로. 그래도 반드시 보인다. */
 .card__count--none {
   color: var(--muted);
-  background: #f0f0f0;
+  background: var(--count-none-bg);
   font-weight: 400;
 }
 
@@ -229,6 +250,8 @@ body {
   padding: 0 14px;
   font-size: 19px;
   font-family: inherit;
+  color: var(--fg);
+  background: var(--bg);
   border: 2px solid var(--line);
   border-radius: 12px;
 }

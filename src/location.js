@@ -1,4 +1,34 @@
-import { GPS_TIMEOUT_MS } from './constants.js';
+import { GPS_TIMEOUT_MS, STORAGE_KEYS } from './constants.js';
+
+// 직접 입력한 동네를 기억한다.
+// 기억하지 않으면 새로고침할 때마다 '지금 계신 곳을 알 수 없습니다'로
+// 돌아가고, 어르신은 매번 동네 이름을 다시 입력해야 한다.
+export function savePlace(place, storage = globalThis.localStorage) {
+  try {
+    storage.setItem(STORAGE_KEYS.savedPlace, JSON.stringify({
+      lat: place.lat, lng: place.lng, label: place.label,
+    }));
+  } catch { /* 무시 */ }
+}
+
+export function readSavedPlace(storage = globalThis.localStorage) {
+  try {
+    const raw = storage.getItem(STORAGE_KEYS.savedPlace);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (typeof p?.lat !== 'number' || typeof p?.lng !== 'number') return null;
+    if (!p.label) return null;
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+export function forgetPlace(storage = globalThis.localStorage) {
+  try {
+    storage.removeItem(STORAGE_KEYS.savedPlace);
+  } catch { /* 무시 */ }
+}
 
 export function isGeolocationSupported() {
   return typeof navigator !== 'undefined' && 'geolocation' in navigator;

@@ -2,7 +2,10 @@ import { KAKAO_JS_KEY } from './config.js';
 import { CATEGORY_KEYS, RADIUS_STEPS_M, STORAGE_KEYS } from './constants.js';
 import { expandRadius } from './geo.js';
 import { fetchNearbyShelters, cacheShelters, readCachedShelters } from './shelters.js';
-import { getCurrentPosition, watchPosition, searchAddress, reverseGeocode } from './location.js';
+import {
+  getCurrentPosition, watchPosition, searchAddress, reverseGeocode,
+  savePlace, readSavedPlace, forgetPlace,
+} from './location.js';
 import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived, getActiveTrip } from './trips.js';
 import { buildWalkDirectionsUrl } from './directions.js';
 import { buildSpeechText, speak } from './speech.js';
@@ -82,12 +85,23 @@ async function locateAndSearch() {
   ui.setBusy(true);
   try {
     state.origin = await getCurrentPosition();
+    // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
+    forgetPlace();
     ui.showFallback(false);
     reverseGeocode(state.origin.lat, state.origin.lng).then((place) => {
       ui.renderPlace(place ?? '현재 위치');
     });
     await search();
   } catch (err) {
+    // GPS 를 못 써도, 전에 직접 넣어둔 동네가 있으면 그걸로 찾아준다.
+    const saved = readSavedPlace();
+    if (saved) {
+      state.origin = { lat: saved.lat, lng: saved.lng };
+      ui.renderPlace(saved.label);
+      ui.showFallback(true, true);
+      await search();
+      return;
+    }
     ui.renderPlace(err.message === 'DENIED' ? '위치를 쓸 수 없습니다' : '위치를 찾지 못했습니다');
     ui.showFallback(true);
     showCacheIfAny();
@@ -284,6 +298,7 @@ async function onAddressSearch() {
   try {
     const place = await searchAddress(query);
     state.origin = { lat: place.lat, lng: place.lng };
+    savePlace(place);
     ui.renderPlace(place.label);
     // 이제 위치를 아니 제목을 '다른 동네로 찾기'로 바꾼다.
     ui.showFallback(true, true);
