@@ -132,7 +132,7 @@ CSV 가 인터넷에 노출되지 않게 했다.
 
 ## 8. 배포
 
-주소: https://winnywin21-design.github.io/shelter-finder/
+주소: https://daepiso.github.io/
 
 | 항목 | 결과 |
 | --- | --- |

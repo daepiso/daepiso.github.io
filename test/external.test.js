@@ -8,7 +8,7 @@ const 아이폰사파리 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS 
 const 인스타 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Instagram 302.0.0.23.113';
 const 데스크톱 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36';
 
-const 주소 = 'https://winnywin21-design.github.io/shelter-finder/';
+const 주소 = 'https://daepiso.github.io/';
 
 test('isInAppBrowser: 카카오톡을 알아본다', () => {
   assert.equal(isInAppBrowser(카카오톡), true);
@@ -33,14 +33,14 @@ test('isAndroid / isIOS 구분', () => {
 
 test('buildExternalUrl: 안드로이드는 크롬을 직접 지정한다', () => {
   const url = buildExternalUrl(주소, 카카오톡);
-  assert.ok(url.startsWith('intent://winnywin21-design.github.io/shelter-finder/'));
+  assert.ok(url.startsWith('intent://daepiso.github.io/'));
   assert.ok(url.includes('package=com.android.chrome'));
   assert.ok(url.includes('scheme=https'));
 });
 
 test('buildExternalUrl: iOS 는 크롬 스킴을 쓴다', () => {
   const url = buildExternalUrl(주소, 인스타);
-  assert.equal(url, 'googlechrome://winnywin21-design.github.io/shelter-finder/');
+  assert.equal(url, 'googlechrome://daepiso.github.io/');
 });
 
 test('buildExternalUrl: 데스크톱은 그대로 둔다', () => {
