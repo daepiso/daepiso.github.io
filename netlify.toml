@@ -1,0 +1,28 @@
+# Netlify 배포 설정
+#
+# main 에 올라가면 Netlify 가 알아서 빌드해서 올린다.
+# GitHub Pages 도 그대로 살려둔다. 한쪽이 죽어도 다른 쪽으로 접속할 수 있다.
+# 재난 앱이니 접속 경로가 둘인 편이 낫다.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # node --test 의 glob 패턴은 Node 21 이상에서만 동작한다
+  NODE_VERSION = "22"
+
+# 브라우저가 옛 화면을 계속 보여주는 일을 막는다.
+# 앱 전체가 54KB 라 매번 확인해도 부담이 없다.
+# 재난 상황에 급히 고친 것이 사용자에게 안 가면 위험하다.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# 위치 기능은 안전한 연결에서만 동작한다. 아래는 기본 보안 설정.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
