@@ -2,12 +2,15 @@ import { walkMinutes } from './geo.js';
 
 const oneLine = (t) => String(t ?? '').replace(/\s+/g, ' ').trim();
 
-export function buildSpeechText(shelter, movingCount = 0) {
+// isNearest 가 false 면 사용자가 목록에서 직접 고른 대피소다.
+// 그때도 '가장 가까운'이라고 말하면 사실이 아닌 안내가 된다.
+export function buildSpeechText(shelter, movingCount = 0, isNearest = true) {
   if (!shelter) {
     return '가까운 대피소를 찾지 못했습니다. 도움이 필요하면 119로 전화하세요.';
   }
   const minutes = walkMinutes(shelter.distance_m);
-  const base = `가장 가까운 대피소는 ${oneLine(shelter.name)}, 걸어서 ${minutes}분입니다.`;
+  const 머리말 = isNearest ? '가장 가까운 대피소는' : '선택하신 대피소는';
+  const base = `${머리말} ${oneLine(shelter.name)}, 걸어서 ${minutes}분입니다.`;
   return movingCount > 0 ? `${base} 지금 ${movingCount}명이 가고 있습니다.` : base;
 }
 

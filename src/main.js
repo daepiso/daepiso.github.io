@@ -180,6 +180,14 @@ function onToggleCategory(key) {
   search();
 }
 
+// 목록에서 고른 대피소가 맨 위로 올라오므로, 맨 위가 늘 가장 가까운 곳은 아니다.
+// 거리로 판단한다. 목록을 다시 정렬해도 거리 값은 그대로다.
+function isNearest(shelter) {
+  if (!shelter || state.shelters.length === 0) return true;
+  const min = Math.min(...state.shelters.map((s) => s.distance_m));
+  return shelter.distance_m === min;
+}
+
 function onSelect(shelter) {
   state.shelters = [shelter, ...state.shelters.filter((s) => s.id !== shelter.id)];
   draw();
@@ -232,7 +240,11 @@ function startArrivalWatch(shelter) {
 function wireButtons() {
   document.getElementById('speak').addEventListener('click', () => {
     const top = state.shelters[0] ?? null;
-    const text = buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0);
+    const text = buildSpeechText(
+      top,
+      top ? state.counts.get(top.id) ?? 0 : 0,
+      isNearest(top),
+    );
 
     // 글씨는 곧바로 띄운다. 소리를 기다리게 하지 않는다.
     ui.showSpokenText(text);
