@@ -65,25 +65,27 @@ body {
 
 /* ── 종류 필터 */
 
-/* 공공데이터의 정식 이름을 그대로 쓰다 보니 길다.
-   가로로 밀어두면 뒤쪽 칩을 아예 못 보는 분이 많으므로 접어서 보여준다.
-   다만 세 줄이 되면 지도와 대피소 카드가 첫 화면에서 밀려나므로
-   두 줄에 들어가도록 여백과 글자를 조금 줄인다. */
+/* 정식 이름을 그대로 쓰다 보니 길다. 옆으로 늘어놓으면 줄이 계속 늘어나
+   지도와 대피소 카드가 첫 화면에서 밀려난다.
+   두 칸씩 두 줄로 고정해 자리를 예측 가능하게 만든다.
+   덤으로 누를 곳이 넓어져 손가락으로 짚기 쉬워진다. */
 .chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
   padding: 10px 16px;
 }
 
 .chip {
   flex: none;
   display: flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 48px;
-  padding: 0 12px;
-  font-size: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 62px;
+  padding: 8px 14px;
+  font-size: 15px;
   font-family: inherit;
   font-weight: 700;
   white-space: nowrap;
@@ -101,10 +103,19 @@ body {
   border-color: var(--fg);
 }
 
+.chip__label { display: flex; align-items: center; gap: 4px; }
+
 /* 켜진 칩에만 체크. 색만으로 구분하면 색약인 분이 못 알아본다. */
 .chip__check {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
+}
+
+/* 눌러보기 전에 근처에 몇 곳이 있는지 알 수 있게 한다. */
+.chip__count {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.85;
 }
 
 /* ── 지도 */

@@ -26,6 +26,21 @@ export function readCachedShelters(storage = globalThis.localStorage) {
   }
 }
 
+// 칩에 개수를 보여주려면 켜지지 않은 종류까지 세야 한다.
+// 실패해도 앱은 돌아가야 하므로 빈 Map 을 돌려준다.
+export async function fetchNearbyCounts({ lat, lng, radiusM }) {
+  try {
+    const { db } = await import('./supabase.js');
+    const { data, error } = await db.rpc('nearby_counts', {
+      p_lat: lat, p_lng: lng, p_radius_m: radiusM,
+    });
+    if (error) return new Map();
+    return new Map((data ?? []).map((r) => [r.category, r.n]));
+  } catch {
+    return new Map();
+  }
+}
+
 export async function fetchNearbyShelters({ lat, lng, radiusM, categories }) {
   const { db } = await import('./supabase.js');
   const { data, error } = await db.rpc('nearby_shelters', {

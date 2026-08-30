@@ -1,7 +1,9 @@
 import { KAKAO_JS_KEY } from './config.js';
 import { CATEGORY_KEYS, RADIUS_STEPS_M, STORAGE_KEYS } from './constants.js';
 import { expandRadius } from './geo.js';
-import { fetchNearbyShelters, cacheShelters, readCachedShelters } from './shelters.js';
+import {
+  fetchNearbyShelters, fetchNearbyCounts, cacheShelters, readCachedShelters,
+} from './shelters.js';
 import {
   getCurrentPosition, watchPosition, searchAddress, reverseGeocode,
   savePlace, readSavedPlace, forgetPlace,
@@ -21,6 +23,7 @@ const state = {
   counts: new Map(),
   target: null,
   nearestId: null,
+  categoryCounts: null,
   stopWatch: null,
   notice: null,
   placeLabel: null,
@@ -34,7 +37,7 @@ const state = {
 async function boot() {
   await gateConsent();
 
-  ui.renderChips(state.categories, onToggleCategory);
+  drawChips();
   wireButtons();
 
   // 기다리지 않는다. 지도가 준비되면 그때 그려 넣는다.
@@ -193,6 +196,14 @@ async function search() {
     state.counts = await fetchCounts(found.map((s) => s.id));
     draw();
     drawMap();
+
+    // 칩의 개수는 앱을 막지 않는다. 늦게 와도 그때 다시 그리면 된다.
+    fetchNearbyCounts({ lat: state.origin.lat, lng: state.origin.lng, radiusM: radius })
+      .then((counts) => {
+        if (counts.size === 0) return;
+        state.categoryCounts = counts;
+        drawChips();
+      });
     subscribeCounts(onCountChange).catch(() => {});
   } catch (err) {
     console.error(err);
@@ -216,6 +227,10 @@ function showCacheIfAny(reason) {
   state.notice = `${reason ?? ''} 마지막으로 받은 정보를 보여드립니다.`.trim();
   draw();
   drawMap();
+}
+
+function drawChips() {
+  ui.renderChips(state.categories, onToggleCategory, state.categoryCounts);
 }
 
 function draw() {
@@ -256,7 +271,7 @@ function onToggleCategory(key) {
   // 전부 끄면 아무것도 못 보게 되므로 되돌린다.
   state.categories = next.length > 0 ? next : [...CATEGORY_KEYS];
   saveCategories();
-  ui.renderChips(state.categories, onToggleCategory);
+  drawChips();
   search();
 }
 

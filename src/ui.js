@@ -9,7 +9,14 @@ export function renderPlace(text) {
   $('place').textContent = text;
 }
 
-export function renderChips(selected, onToggle) {
+// 개수를 곁들이면 눌러보기 전에 결과가 있는지 알 수 있다.
+// 개수를 아직 모를 때는 숫자를 붙이지 않는다. 0곳이라고 잘못 말하면 안 된다.
+export function chipCountText(count) {
+  if (count === null || count === undefined) return '';
+  return count > 0 ? `${count}곳` : '없음';
+}
+
+export function renderChips(selected, onToggle, counts = null) {
   const nav = $('chips');
   nav.innerHTML = '';
   for (const cat of CATEGORIES) {
@@ -21,16 +28,30 @@ export function renderChips(selected, onToggle) {
     btn.setAttribute('aria-label', cat.aria);
     btn.setAttribute('aria-pressed', String(on));
 
+    const line = document.createElement('span');
+    line.className = 'chip__label';
+
     if (on) {
       // 색만으로 켜짐/꺼짐을 나타내면 색약인 분이 구분하지 못한다.
       const check = document.createElement('span');
       check.className = 'chip__check';
       check.setAttribute('aria-hidden', 'true');
       check.textContent = '✓';
-      btn.appendChild(check);
+      line.appendChild(check);
+    }
+    line.appendChild(document.createTextNode(cat.label));
+    btn.appendChild(line);
+
+    const n = counts ? counts.get(cat.key) ?? 0 : null;
+    const text = chipCountText(n);
+    if (text) {
+      const badge = document.createElement('span');
+      badge.className = n > 0 ? 'chip__count' : 'chip__count chip__count--none';
+      badge.textContent = text;
+      btn.appendChild(badge);
+      btn.setAttribute('aria-label', `${cat.aria} ${text}`);
     }
 
-    btn.appendChild(document.createTextNode(cat.label));
     btn.addEventListener('click', () => onToggle(cat.key));
     nav.appendChild(btn);
   }
