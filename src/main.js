@@ -8,7 +8,9 @@ import {
   getCurrentPosition, watchPosition, searchAddress, reverseGeocode,
   savePlace, readSavedPlace, forgetPlace,
 } from './location.js';
-import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived, getActiveTrip } from './trips.js';
+import {
+  startTrip, endTrip, fetchCounts, watchCounts, hasArrived, getActiveTrip,
+} from './trips.js';
 import { buildWalkDirectionsUrl } from './directions.js';
 import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
@@ -204,7 +206,11 @@ async function search() {
         state.categoryCounts = counts;
         drawChips();
       });
-    subscribeCounts(onCountChange).catch(() => {});
+    watchCounts({
+      getShelterIds: () => state.shelters.map((s) => s.id),
+      onChange: onCountChange,
+      onCounts: onCountsRefreshed,
+    }).catch(() => {});
   } catch (err) {
     console.error(err);
     showCacheIfAny('지금은 최신 정보를 받지 못했습니다.');
@@ -262,6 +268,19 @@ function drawMap() {
 function onCountChange(shelterId, count) {
   state.counts.set(shelterId, count);
   draw();
+}
+
+// 주기 조회로 통째로 받아왔을 때.
+function onCountsRefreshed(counts) {
+  let 바뀐것 = false;
+  for (const [id, n] of counts) {
+    if (state.counts.get(id) !== n) {
+      state.counts.set(id, n);
+      바뀐것 = true;
+    }
+  }
+  // 바뀐 게 없으면 다시 그리지 않는다. 20초마다 화면이 깜빡이면 안 된다.
+  if (바뀐것) draw();
 }
 
 function onToggleCategory(key) {

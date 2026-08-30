@@ -3,6 +3,7 @@ import {
   ARRIVAL_RADIUS_M,
   STORAGE_KEYS,
   HEARTBEAT_INTERVAL_MS,
+  COUNT_POLL_INTERVAL_MS,
 } from './constants.js';
 import { haversineMeters } from './geo.js';
 
@@ -104,10 +105,42 @@ export async function fetchCounts(shelterIds) {
   return new Map((data ?? []).map((r) => [r.shelter_id, r.moving_count]));
 }
 
-// 인원 수 실시간 구독. 실패해도 앱은 계속 동작해야 한다.
-export async function subscribeCounts(onChange) {
+// 인원 수를 지켜보는 방법은 두 가지다.
+//
+// 실시간 연결(웹소켓)은 즉시 반영되지만 사람마다 하나씩 붙잡고 있어서
+// 동시 200명이 한계다. 재난 때는 그보다 많이 몰릴 수 있다.
+//
+// 그래서 실시간을 먼저 시도하고, 자리가 없거나 끊기면 주기 조회로
+// 넘어간다. 주기 조회는 연결을 붙잡지 않아 사람 수 제한이 없다.
+// 인원 수가 20초 늦게 갱신되는 것은 대피에 아무 지장이 없다.
+
+let pollTimer = null;
+
+function stopPolling() {
+  clearInterval(pollTimer);
+  pollTimer = null;
+}
+
+function startPolling(getShelterIds, onCounts) {
+  if (pollTimer) return;
+  const tick = async () => {
+    const ids = getShelterIds();
+    if (ids.length === 0) return;
+    const counts = await fetchCounts(ids);
+    if (counts.size > 0) onCounts(counts);
+  };
+  tick();
+  pollTimer = setInterval(tick, COUNT_POLL_INTERVAL_MS);
+}
+
+export function isPolling() {
+  return pollTimer !== null;
+}
+
+export async function watchCounts({ getShelterIds, onChange, onCounts }) {
   const { db } = await import('./supabase.js');
-  await unsubscribeCounts();
+  await unwatchCounts();
+
   countsChannel = db
     .channel('shelter-counts')
     .on(
@@ -118,11 +151,20 @@ export async function subscribeCounts(onChange) {
         if (row?.shelter_id != null) onChange(row.shelter_id, row.moving_count ?? 0);
       },
     )
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        stopPolling();
+        return;
+      }
+      // CHANNEL_ERROR, TIMED_OUT, CLOSED — 실시간을 못 쓰는 상황이다.
+      startPolling(getShelterIds, onCounts);
+    });
+
   return countsChannel;
 }
 
-export async function unsubscribeCounts() {
+export async function unwatchCounts() {
+  stopPolling();
   if (!countsChannel) return;
   const { db } = await import('./supabase.js');
   await db.removeChannel(countsChannel);

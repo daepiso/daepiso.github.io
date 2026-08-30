@@ -12,6 +12,8 @@ export const CATEGORY_KEYS = CATEGORIES.map((c) => c.key);
 export const RADIUS_STEPS_M = [3000, 5000, 10000];
 
 export const HEARTBEAT_INTERVAL_MS = 30_000;
+// 실시간 연결을 못 쓸 때 인원 수를 다시 물어보는 간격
+export const COUNT_POLL_INTERVAL_MS = 20_000;
 export const TRIP_STALE_MS = 120_000;
 export const ARRIVAL_RADIUS_M = 100;
 // 기지국·와이파이로 잡는 빠른 시도
