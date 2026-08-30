@@ -22,16 +22,41 @@ const state = {
   target: null,
   stopWatch: null,
   notice: null,
+  placeLabel: null,
 };
 
 // ─────────────────────────────── 부팅
 
+// 지도는 '있으면 좋은 것'이다. 지도를 기다리다 앱 전체가 멈추면 안 된다.
+// 예전에는 await loadKakao() 를 먼저 걸어서, 카카오 서버가 응답하지 않으면
+// 칩도 목록도 위치 안내도 영영 나오지 않고 빈 화면만 남았다.
 async function boot() {
   await gateConsent();
-  await loadKakao();
+
   ui.renderChips(state.categories, onToggleCategory);
   wireButtons();
+
+  // 기다리지 않는다. 지도가 준비되면 그때 그려 넣는다.
+  loadKakao().then((ready) => {
+    if (!ready) return;
+    if (state.origin) {
+      drawMap();
+      refreshPlaceLabel();
+    }
+  });
+
   await locateAndSearch();
+}
+
+// 동네 이름은 카카오가 있어야 알 수 있다.
+// 지도가 늦게 준비되면 그때 머리말을 채워 넣는다.
+function refreshPlaceLabel() {
+  if (!state.origin || state.placeLabel) return;
+  reverseGeocode(state.origin.lat, state.origin.lng).then((place) => {
+    if (!place) return;
+    state.placeLabel = place;
+    ui.renderPlace(place);
+  });
 }
 
 function gateConsent() {
@@ -58,22 +83,40 @@ function gateConsent() {
 
 // 카카오 SDK 는 키를 URL 에 담아야 해서 여기서 주입한다.
 // 실패해도 목록은 계속 보여야 하므로 항상 resolve 한다.
+// 응답이 아예 안 오면 onload 도 onerror 도 불리지 않는다.
+// 그런 경우를 대비해 시간을 정해두고 포기한다.
+const KAKAO_TIMEOUT_MS = 6000;
+
 function loadKakao() {
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = (ready) => {
+      if (settled) return;
+      settled = true;
+      if (!ready) ui.hideMap();
+      resolve(ready);
+    };
+
+    const timer = setTimeout(() => {
+      console.warn('카카오 지도가 응답하지 않습니다. 목록만 표시합니다.');
+      finish(false);
+    }, KAKAO_TIMEOUT_MS);
+
     const script = document.createElement('script');
     script.src =
       `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&libraries=services&autoload=false`;
     script.onload = () => {
       try {
-        window.kakao.maps.load(() => resolve(true));
+        window.kakao.maps.load(() => { clearTimeout(timer); finish(true); });
       } catch {
-        resolve(false);
+        clearTimeout(timer);
+        finish(false);
       }
     };
     script.onerror = () => {
+      clearTimeout(timer);
       console.warn('카카오 지도를 불러오지 못했습니다. 목록만 표시합니다.');
-      ui.hideMap();
-      resolve(false);
+      finish(false);
     };
     document.head.appendChild(script);
   });
@@ -88,8 +131,11 @@ async function locateAndSearch() {
     // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
     forgetPlace();
     ui.showFallback(false);
+    ui.renderPlace('현재 위치');
     reverseGeocode(state.origin.lat, state.origin.lng).then((place) => {
-      ui.renderPlace(place ?? '현재 위치');
+      if (!place) return;
+      state.placeLabel = place;
+      ui.renderPlace(place);
     });
     await search();
   } catch (err) {
@@ -97,6 +143,7 @@ async function locateAndSearch() {
     const saved = readSavedPlace();
     if (saved) {
       state.origin = { lat: saved.lat, lng: saved.lng };
+      state.placeLabel = saved.label;
       ui.renderPlace(saved.label);
       ui.showFallback(true, true);
       await search();
@@ -251,8 +298,13 @@ function startArrivalWatch(shelter) {
 
 // ─────────────────────────────── 버튼 배선
 
+// 화면에 없는 버튼을 붙이려다 앱 전체가 죽으면 안 된다.
+function on(id, event, handler) {
+  document.getElementById(id)?.addEventListener(event, handler);
+}
+
 function wireButtons() {
-  document.getElementById('speak').addEventListener('click', () => {
+  on('speak', 'click', () => {
     const top = state.shelters[0] ?? null;
     const text = buildSpeechText(
       top,
@@ -270,20 +322,20 @@ function wireButtons() {
     });
   });
 
-  document.getElementById('share').addEventListener('click', () => {
+  on('share', 'click', () => {
     const target = state.target ?? state.shelters[0];
     if (!target) return;
     openSmsApp(target);
   });
 
-  document.getElementById('retry-location').addEventListener('click', () => {
+  on('retry-location', 'click', () => {
     ui.showAddressError(null);
     ui.renderPlace('위치를 찾는 중…');
     locateAndSearch();
   });
 
-  document.getElementById('addr-go').addEventListener('click', onAddressSearch);
-  document.getElementById('addr').addEventListener('keydown', (e) => {
+  on('addr-go', 'click', onAddressSearch);
+  on('addr', 'keydown', (e) => {
     if (e.key === 'Enter') onAddressSearch();
   });
 }
@@ -299,6 +351,7 @@ async function onAddressSearch() {
     const place = await searchAddress(query);
     state.origin = { lat: place.lat, lng: place.lng };
     savePlace(place);
+    state.placeLabel = place.label;
     ui.renderPlace(place.label);
     // 이제 위치를 아니 제목을 '다른 동네로 찾기'로 바꾼다.
     ui.showFallback(true, true);
