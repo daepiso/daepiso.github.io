@@ -14,7 +14,10 @@ export const RADIUS_STEPS_M = [3000, 5000, 10000];
 export const HEARTBEAT_INTERVAL_MS = 30_000;
 export const TRIP_STALE_MS = 120_000;
 export const ARRIVAL_RADIUS_M = 100;
-export const GPS_TIMEOUT_MS = 10_000;
+// 기지국·와이파이로 잡는 빠른 시도
+export const GPS_FAST_TIMEOUT_MS = 8_000;
+// 그게 안 될 때 GPS 위성을 기다리는 시간
+export const GPS_TIMEOUT_MS = 20_000;
 export const WALK_METERS_PER_MINUTE = 67;
 
 export const STORAGE_KEYS = {

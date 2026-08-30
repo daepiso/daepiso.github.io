@@ -1,4 +1,4 @@
-import { GPS_TIMEOUT_MS, STORAGE_KEYS } from './constants.js';
+import { GPS_TIMEOUT_MS, GPS_FAST_TIMEOUT_MS, STORAGE_KEYS } from './constants.js';
 
 // 직접 입력한 동네를 기억한다.
 // 기억하지 않으면 새로고침할 때마다 '지금 계신 곳을 알 수 없습니다'로
@@ -34,18 +34,48 @@ export function isGeolocationSupported() {
   return typeof navigator !== 'undefined' && 'geolocation' in navigator;
 }
 
-export function getCurrentPosition() {
+function askPosition(options) {
   return new Promise((resolve, reject) => {
-    if (!isGeolocationSupported()) {
-      reject(new Error('UNSUPPORTED'));
-      return;
-    }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => reject(new Error(err.code === err.PERMISSION_DENIED ? 'DENIED' : 'FAILED')),
-      { enableHighAccuracy: true, timeout: GPS_TIMEOUT_MS, maximumAge: 30_000 },
+      reject,
+      options,
     );
   });
+}
+
+const isDenied = (err) => err?.code === 1; // PERMISSION_DENIED
+
+// 위치는 두 번에 걸쳐 구한다.
+//
+// GPS 정밀 측위(enableHighAccuracy)는 위성 신호를 기다리므로 실내나
+// 건물 사이에서는 20~30초가 걸리거나 아예 실패한다. 그것부터 하면
+// 어르신은 빈 화면만 보다가 '위치를 찾지 못했습니다'를 만난다.
+//
+// 그래서 기지국과 와이파이로 잡는 빠른 방식을 먼저 쓴다. 대피소를
+// 찾는 데는 이 정도 정확도로 충분하다. 그게 안 되면 GPS 를 오래 기다린다.
+export async function getCurrentPosition() {
+  if (!isGeolocationSupported()) throw new Error('UNSUPPORTED');
+
+  try {
+    return await askPosition({
+      enableHighAccuracy: false,
+      timeout: GPS_FAST_TIMEOUT_MS,
+      maximumAge: 300_000,
+    });
+  } catch (err) {
+    if (isDenied(err)) throw new Error('DENIED');
+  }
+
+  try {
+    return await askPosition({
+      enableHighAccuracy: true,
+      timeout: GPS_TIMEOUT_MS,
+      maximumAge: 0,
+    });
+  } catch (err) {
+    throw new Error(isDenied(err) ? 'DENIED' : 'FAILED');
+  }
 }
 
 // 도착 판정을 위해 위치를 계속 지켜본다. 중지 함수를 돌려준다.

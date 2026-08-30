@@ -46,7 +46,9 @@ export function peopleText(count, isMine) {
   return `지금 ${count}명이 가는 중`;
 }
 
-export function renderList(shelters, counts, handlers, notice, activeShelterId = null) {
+export function renderList(
+  shelters, counts, handlers, notice, activeShelterId = null, selectedId = null,
+) {
   const list = $('list');
   list.innerHTML = '';
 
@@ -67,23 +69,33 @@ export function renderList(shelters, counts, handlers, notice, activeShelterId =
     return;
   }
 
-  // 맨 위 카드가 왜 맨 위인지 화면에 적혀 있어야 한다.
-  // 목록에서 다른 곳을 고르면 그게 맨 위로 올라오므로 늘 최단거리는 아니다.
-  const minDistance = Math.min(...shelters.map((s) => s.distance_m));
-  const topIsNearest = shelters[0].distance_m === minDistance;
+  // 가장 가까운 곳은 늘 맨 위에 둔다. 재난 상황에서 이게 밀려나면 안 된다.
+  // 목록은 가까운 순으로 오므로 첫 번째가 가장 가까운 곳이다.
+  const nearest = shelters[0];
+  const selected = selectedId ? shelters.find((s) => s.id === selectedId) : null;
 
   list.appendChild(
-    topCard(shelters[0], counts.get(shelters[0].id) ?? 0, handlers, activeShelterId, topIsNearest),
+    topCard(nearest, counts.get(nearest.id) ?? 0, handlers, activeShelterId, true),
   );
 
-  for (const s of shelters.slice(1, 10)) {
+  // 고른 곳이 가장 가까운 곳과 다르면 바로 아래에 따로 보여준다.
+  if (selected && selected.id !== nearest.id) {
+    list.appendChild(
+      topCard(selected, counts.get(selected.id) ?? 0, handlers, activeShelterId, false),
+    );
+  }
+
+  const 이미보여준것 = new Set([nearest.id, selected?.id]);
+  const 나머지 = shelters.filter((s) => !이미보여준것.has(s.id));
+  for (const s of 나머지.slice(0, 9)) {
     list.appendChild(summaryRow(s, counts.get(s.id) ?? 0, handlers, activeShelterId));
   }
 }
 
 function topCard(shelter, count, handlers, activeShelterId, isNearest) {
   const card = document.createElement('section');
-  card.className = 'card';
+  card.className = isNearest ? 'card' : 'card card--selected';
+  card.id = isNearest ? 'card-nearest' : 'card-selected';
 
   const tag = document.createElement('p');
   tag.className = 'card__tag';

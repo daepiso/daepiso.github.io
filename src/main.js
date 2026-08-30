@@ -20,6 +20,7 @@ const state = {
   shelters: [],
   counts: new Map(),
   target: null,
+  selectedId: null,
   stopWatch: null,
   notice: null,
   placeLabel: null,
@@ -126,6 +127,10 @@ function loadKakao() {
 
 async function locateAndSearch() {
   ui.setBusy(true);
+  // 찾는 동안에는 '동네 이름을 넣으라'는 칸을 보이지 않는다.
+  // 먼저 스스로 찾아본 뒤, 정말 안 될 때만 부탁한다.
+  ui.showFallback(false);
+  ui.renderPlace('내 위치를 찾는 중입니다…');
   try {
     state.origin = await getCurrentPosition();
     // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
@@ -177,6 +182,8 @@ async function search() {
     }
 
     state.shelters = found;
+    // 동네가 바뀌면 전에 고른 대피소는 목록에 없다.
+    state.selectedId = null;
     cacheShelters(found, state.origin);
 
     if (found.length === 0) {
@@ -212,14 +219,16 @@ function showCacheIfAny(reason) {
 
 function draw() {
   const mine = getActiveTrip()?.shelterId ?? null;
-  ui.renderList(state.shelters, state.counts, { onGo, onSelect }, state.notice, mine);
+  ui.renderList(
+    state.shelters, state.counts, { onGo, onSelect }, state.notice, mine, state.selectedId,
+  );
 
   // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
   // 목록이 바뀌면 같이 고쳐 쓴다.
   if (ui.isSpokenTextVisible()) {
-    const top = state.shelters[0] ?? null;
+    const cur = currentShelter();
     ui.updateSpokenText(
-      buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0, isNearest(top)),
+      buildSpeechText(cur, cur ? state.counts.get(cur.id) ?? 0 : 0, isNearest(cur)),
     );
   }
 }
@@ -250,18 +259,26 @@ function onToggleCategory(key) {
   search();
 }
 
-// 목록에서 고른 대피소가 맨 위로 올라오므로, 맨 위가 늘 가장 가까운 곳은 아니다.
-// 거리로 판단한다. 목록을 다시 정렬해도 거리 값은 그대로다.
-function isNearest(shelter) {
-  if (!shelter || state.shelters.length === 0) return true;
-  const min = Math.min(...state.shelters.map((s) => s.distance_m));
-  return shelter.distance_m === min;
+// 소리로 듣기와 가족에게는 '지금 보고 있는 대피소'를 가리켜야 한다.
+// 고른 곳이 있으면 그것, 없으면 가장 가까운 곳이다.
+function currentShelter() {
+  if (state.selectedId) {
+    const found = state.shelters.find((s) => s.id === state.selectedId);
+    if (found) return found;
+  }
+  return state.shelters[0] ?? null;
 }
 
+function isNearest(shelter) {
+  if (!shelter || state.shelters.length === 0) return true;
+  return shelter.id === state.shelters[0].id;
+}
+
+// 목록 순서는 건드리지 않는다. 가장 가까운 곳은 늘 맨 위에 남아야 한다.
 function onSelect(shelter) {
-  state.shelters = [shelter, ...state.shelters.filter((s) => s.id !== shelter.id)];
+  state.selectedId = shelter.id;
   draw();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('card-selected')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
 function loadCategories() {
@@ -314,11 +331,11 @@ function on(id, event, handler) {
 
 function wireButtons() {
   on('speak', 'click', () => {
-    const top = state.shelters[0] ?? null;
+    const cur = currentShelter();
     const text = buildSpeechText(
-      top,
-      top ? state.counts.get(top.id) ?? 0 : 0,
-      isNearest(top),
+      cur,
+      cur ? state.counts.get(cur.id) ?? 0 : 0,
+      isNearest(cur),
     );
 
     // 글씨는 곧바로 띄운다. 소리를 기다리게 하지 않는다.
@@ -332,7 +349,7 @@ function wireButtons() {
   });
 
   on('share', 'click', () => {
-    const target = state.target ?? state.shelters[0];
+    const target = state.target ?? currentShelter();
     if (!target) return;
     openSmsApp(target);
   });
