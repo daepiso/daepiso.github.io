@@ -44,24 +44,28 @@ body {
 
 /* ── 종류 필터 */
 
+/* 공공데이터의 정식 이름을 그대로 쓰다 보니 길다.
+   가로로 밀어두면 뒤쪽 칩을 아예 못 보는 분이 많으므로 접어서 보여준다.
+   다만 세 줄이 되면 지도와 대피소 카드가 첫 화면에서 밀려나므로
+   두 줄에 들어가도록 여백과 글자를 조금 줄인다. */
 .chips {
   display: flex;
-  gap: 8px;
-  padding: 12px 20px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
 }
 
 .chip {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-height: 48px;
-  padding: 0 18px;
-  font-size: 17px;
+  padding: 0 12px;
+  font-size: 16px;
   font-family: inherit;
   font-weight: 700;
+  white-space: nowrap;
   /* 꺼진 칩도 또렷해야 한다. 흐릿하면 어르신은 글자를 못 읽는다. */
   color: var(--fg);
   background: var(--bg);

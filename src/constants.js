@@ -1,8 +1,10 @@
+// 칩에 적히는 이름은 공공데이터의 실제 이름을 그대로 쓴다.
+// 어르신이 뉴스나 안내문에서 본 말과 앱의 말이 같아야 헷갈리지 않는다.
 export const CATEGORIES = [
-  { key: 'civil_defense', label: '민방위', aria: '민방위 대피시설' },
-  { key: 'earthquake', label: '지진', aria: '지진 옥외대피장소' },
-  { key: 'heat_cold', label: '폭염·한파', aria: '폭염 한파 쉼터' },
-  { key: 'temp_housing', label: '임시주거', aria: '이재민 임시주거시설' },
+  { key: 'civil_defense', label: '민방위대피시설', aria: '민방위 대피시설' },
+  { key: 'earthquake', label: '지진옥외대피장소', aria: '지진 옥외대피장소' },
+  { key: 'heat_cold', label: '무더위쉼터', aria: '무더위쉼터' },
+  { key: 'temp_housing', label: '이재민임시주거시설', aria: '이재민 임시주거시설' },
 ];
 
 export const CATEGORY_KEYS = CATEGORIES.map((c) => c.key);
