@@ -130,7 +130,7 @@ async function locateAndSearch() {
     state.origin = await getCurrentPosition();
     // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
     forgetPlace();
-    ui.showFallback(false);
+    ui.showFallback(true, true);
     ui.renderPlace('현재 위치');
     reverseGeocode(state.origin.lat, state.origin.lng).then((place) => {
       if (!place) return;
@@ -213,6 +213,15 @@ function showCacheIfAny(reason) {
 function draw() {
   const mine = getActiveTrip()?.shelterId ?? null;
   ui.renderList(state.shelters, state.counts, { onGo, onSelect }, state.notice, mine);
+
+  // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
+  // 목록이 바뀌면 같이 고쳐 쓴다.
+  if (ui.isSpokenTextVisible()) {
+    const top = state.shelters[0] ?? null;
+    ui.updateSpokenText(
+      buildSpeechText(top, top ? state.counts.get(top.id) ?? 0 : 0, isNearest(top)),
+    );
+  }
 }
 
 function drawMap() {

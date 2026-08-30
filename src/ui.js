@@ -151,14 +151,24 @@ function summaryRow(shelter, count, handlers, activeShelterId) {
   return row;
 }
 
-// 위치를 이미 알아낸 뒤에도 '지금 계신 곳을 알 수 없습니다'가 떠 있으면
-// 머리말과 앞뒤가 맞지 않는다. 같은 칸을 다른 제목으로 다시 쓴다.
+// 이 칸은 늘 쓸 수 있어야 한다. 숨겨두면 위치가 잘 잡히는 폰에서는
+// 다른 동네의 대피소를 찾아볼 방법이 아예 없다.
+//
+// 다만 위치를 이미 아는데 '지금 계신 곳을 알 수 없습니다'가 떠 있으면
+// 머리말과 앞뒤가 맞지 않는다. 그래서 제목을 바꾸고, 설명과
+// '현재 위치 다시 찾기'는 필요할 때만 보여 첫 화면을 덜 차지한다.
 export function showFallback(show, hasLocation = false) {
   $('fallback').hidden = !show;
   if (!show) return;
   $('fallback-title').textContent = hasLocation
     ? '다른 동네로 찾기'
     : '지금 계신 곳을 알 수 없습니다';
+  $('fallback-help').hidden = hasLocation;
+  $('retry-location').hidden = hasLocation;
+}
+
+export function isSpokenTextVisible() {
+  return !$('spoken').hidden;
 }
 
 export function showAddressError(message) {
@@ -185,6 +195,15 @@ export function showSpokenText(text) {
 
   box.hidden = false;
   box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// 이미 떠 있는 문구만 고쳐 쓴다. 화면을 옮기지 않는다.
+// 인원 수가 실시간으로 바뀔 때마다 화면이 튀면 못 읽는다.
+export function updateSpokenText(text) {
+  const box = $('spoken');
+  if (box.hidden) return;
+  const main = box.querySelector('.spoken__text');
+  if (main) main.textContent = text;
 }
 
 // 소리가 끝내 안 났을 때만 붙인다. 메뉴를 뒤지지 않고 한 번에 크롬으로 간다.
