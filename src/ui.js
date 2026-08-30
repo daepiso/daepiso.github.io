@@ -24,7 +24,17 @@ export function renderChips(selected, onToggle) {
   }
 }
 
-export function renderList(shelters, counts, handlers, notice) {
+// 인원 문구는 0명일 때도 반드시 보여준다.
+// 0명이면 숨겼더니 회성 님이 "이 기능이 안 된다"고 하셨다.
+// 요청받은 기능이 평소에 안 보이면 없는 것이나 마찬가지다.
+export function peopleText(count, isMine) {
+  if (count <= 0) return '지금 이곳으로 가는 사람은 없습니다';
+  if (isMine && count === 1) return '지금 1명이 가는 중 (나)';
+  if (isMine) return `지금 ${count}명이 가는 중 (나 포함)`;
+  return `지금 ${count}명이 가는 중`;
+}
+
+export function renderList(shelters, counts, handlers, notice, activeShelterId = null) {
   const list = $('list');
   list.innerHTML = '';
 
@@ -45,14 +55,16 @@ export function renderList(shelters, counts, handlers, notice) {
     return;
   }
 
-  list.appendChild(topCard(shelters[0], counts.get(shelters[0].id) ?? 0, handlers));
+  list.appendChild(
+    topCard(shelters[0], counts.get(shelters[0].id) ?? 0, handlers, activeShelterId),
+  );
 
   for (const s of shelters.slice(1, 10)) {
-    list.appendChild(summaryRow(s, counts.get(s.id) ?? 0, handlers));
+    list.appendChild(summaryRow(s, counts.get(s.id) ?? 0, handlers, activeShelterId));
   }
 }
 
-function topCard(shelter, count, handlers) {
+function topCard(shelter, count, handlers, activeShelterId) {
   const card = document.createElement('section');
   card.className = 'card';
 
@@ -71,12 +83,10 @@ function topCard(shelter, count, handlers) {
   addr.textContent = shelter.address;
   card.appendChild(addr);
 
-  if (count > 0) {
-    const badge = document.createElement('p');
-    badge.className = 'card__count';
-    badge.textContent = `지금 ${count}명이 가는 중`;
-    card.appendChild(badge);
-  }
+  const badge = document.createElement('p');
+  badge.className = count > 0 ? 'card__count' : 'card__count card__count--none';
+  badge.textContent = peopleText(count, shelter.id === activeShelterId);
+  card.appendChild(badge);
 
   const go = document.createElement('button');
   go.className = 'btn btn--primary btn--block';
@@ -88,7 +98,7 @@ function topCard(shelter, count, handlers) {
   return card;
 }
 
-function summaryRow(shelter, count, handlers) {
+function summaryRow(shelter, count, handlers, activeShelterId) {
   const row = document.createElement('button');
   row.className = 'row';
   row.type = 'button';
@@ -104,7 +114,8 @@ function summaryRow(shelter, count, handlers) {
   meta.className = 'row__meta';
   meta.textContent =
     `${formatDistance(shelter.distance_m)} · 걸어서 ${walkMinutes(shelter.distance_m)}분` +
-    (count > 0 ? ` · ${count}명` : '');
+    (count > 0 ? ` · ${count}명 가는 중` : '') +
+    (shelter.id === activeShelterId ? ' · 내가 가는 중' : '');
 
   left.append(name, meta);
 

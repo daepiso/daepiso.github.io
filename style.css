@@ -109,6 +109,13 @@ body {
   border-radius: 10px;
 }
 
+/* 0명일 때는 조용한 색으로. 그래도 반드시 보인다. */
+.card__count--none {
+  color: var(--muted);
+  background: #f0f0f0;
+  font-weight: 400;
+}
+
 .card .btn { margin-top: 14px; }
 
 .row {

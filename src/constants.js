@@ -20,4 +20,5 @@ export const STORAGE_KEYS = {
   consent: 'shelter.consentAt',
   categories: 'shelter.categories',
   shelterCache: 'shelter.cache',
+  activeTrip: 'shelter.activeTrip',
 };

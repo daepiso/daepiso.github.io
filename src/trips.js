@@ -33,6 +33,37 @@ export function getDeviceId(storage = globalThis.localStorage) {
   return id;
 }
 
+// 내가 지금 어디로 가는 중인지 기억한다.
+// 길찾기를 누르면 카카오맵으로 넘어가면서 화면이 통째로 사라지므로,
+// 돌아왔을 때 "내가 가는 중"임을 알려면 저장해둬야 한다.
+export function getActiveTrip(storage = globalThis.localStorage) {
+  try {
+    const raw = storage.getItem(STORAGE_KEYS.activeTrip);
+    if (!raw) return null;
+    const t = JSON.parse(raw);
+    if (!t?.shelterId) return null;
+    if (isStale(t.startedAt)) return null;
+    return t;
+  } catch {
+    return null;
+  }
+}
+
+function rememberTrip(shelterId, storage = globalThis.localStorage) {
+  try {
+    storage.setItem(
+      STORAGE_KEYS.activeTrip,
+      JSON.stringify({ shelterId, startedAt: new Date().toISOString() }),
+    );
+  } catch { /* 무시 */ }
+}
+
+function forgetTrip(storage = globalThis.localStorage) {
+  try {
+    storage.removeItem(STORAGE_KEYS.activeTrip);
+  } catch { /* 무시 */ }
+}
+
 export async function startTrip(shelterId) {
   const { db } = await import('./supabase.js');
   const { error } = await db.rpc('start_trip', {
@@ -41,6 +72,7 @@ export async function startTrip(shelterId) {
   });
   if (error) throw new Error(`이동 시작 기록 실패: ${error.message}`);
 
+  rememberTrip(shelterId);
   clearInterval(heartbeatTimer);
   heartbeatTimer = setInterval(() => {
     sendHeartbeat().catch(() => {});
@@ -55,6 +87,7 @@ export async function sendHeartbeat() {
 export async function endTrip(reason) {
   clearInterval(heartbeatTimer);
   heartbeatTimer = null;
+  forgetTrip();
   const { db } = await import('./supabase.js');
   await db.rpc('end_trip', { p_device_id: getDeviceId(), p_reason: reason });
 }

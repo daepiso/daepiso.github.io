@@ -3,7 +3,7 @@ import { CATEGORY_KEYS, RADIUS_STEPS_M, STORAGE_KEYS } from './constants.js';
 import { expandRadius } from './geo.js';
 import { fetchNearbyShelters, cacheShelters, readCachedShelters } from './shelters.js';
 import { getCurrentPosition, watchPosition, searchAddress, reverseGeocode } from './location.js';
-import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived } from './trips.js';
+import { startTrip, endTrip, fetchCounts, subscribeCounts, hasArrived, getActiveTrip } from './trips.js';
 import { buildWalkDirectionsUrl } from './directions.js';
 import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
@@ -150,7 +150,8 @@ function showCacheIfAny(reason) {
 }
 
 function draw() {
-  ui.renderList(state.shelters, state.counts, { onGo, onSelect }, state.notice);
+  const mine = getActiveTrip()?.shelterId ?? null;
+  ui.renderList(state.shelters, state.counts, { onGo, onSelect }, state.notice, mine);
 }
 
 function drawMap() {
