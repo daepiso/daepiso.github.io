@@ -47,7 +47,7 @@ export function peopleText(count, isMine) {
 }
 
 export function renderList(
-  shelters, counts, handlers, notice, activeShelterId = null, selectedId = null,
+  shelters, counts, handlers, notice, activeShelterId = null, nearestId = null,
 ) {
   const list = $('list');
   list.innerHTML = '';
@@ -69,26 +69,21 @@ export function renderList(
     return;
   }
 
-  // 가장 가까운 곳은 늘 맨 위에 둔다. 재난 상황에서 이게 밀려나면 안 된다.
-  // 목록은 가까운 순으로 오므로 첫 번째가 가장 가까운 곳이다.
-  const nearest = shelters[0];
-  const selected = selectedId ? shelters.find((s) => s.id === selectedId) : null;
+  // 맨 위 카드는 '지금 보고 있는 곳'이다.
+  // 고른 것이 없으면 가장 가까운 곳이 그대로 맨 위에 온다.
+  const top = shelters[0];
+  const topIsNearest = nearestId === null || top.id === nearestId;
 
   list.appendChild(
-    topCard(nearest, counts.get(nearest.id) ?? 0, handlers, activeShelterId, true),
+    topCard(top, counts.get(top.id) ?? 0, handlers, activeShelterId, topIsNearest),
   );
 
-  // 고른 곳이 가장 가까운 곳과 다르면 바로 아래에 따로 보여준다.
-  if (selected && selected.id !== nearest.id) {
+  // 가장 가까운 곳이 아래로 내려가더라도 목록 안에서 바로 알아볼 수 있게
+  // 이름 위에 딱지를 붙인다.
+  for (const s of shelters.slice(1, 10)) {
     list.appendChild(
-      topCard(selected, counts.get(selected.id) ?? 0, handlers, activeShelterId, false),
+      summaryRow(s, counts.get(s.id) ?? 0, handlers, activeShelterId, s.id === nearestId),
     );
-  }
-
-  const 이미보여준것 = new Set([nearest.id, selected?.id]);
-  const 나머지 = shelters.filter((s) => !이미보여준것.has(s.id));
-  for (const s of 나머지.slice(0, 9)) {
-    list.appendChild(summaryRow(s, counts.get(s.id) ?? 0, handlers, activeShelterId));
   }
 }
 
@@ -132,13 +127,20 @@ function topCard(shelter, count, handlers, activeShelterId, isNearest) {
   return card;
 }
 
-function summaryRow(shelter, count, handlers, activeShelterId) {
+function summaryRow(shelter, count, handlers, activeShelterId, isNearest = false) {
   const row = document.createElement('button');
-  row.className = 'row';
+  row.className = isNearest ? 'row row--nearest' : 'row';
   row.type = 'button';
 
   const left = document.createElement('span');
   left.className = 'row__text';
+
+  if (isNearest) {
+    const tag = document.createElement('span');
+    tag.className = 'row__tag';
+    tag.textContent = '가장 가까운 곳';
+    left.appendChild(tag);
+  }
 
   const name = document.createElement('span');
   name.className = 'row__name';

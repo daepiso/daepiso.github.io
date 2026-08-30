@@ -20,7 +20,7 @@ const state = {
   shelters: [],
   counts: new Map(),
   target: null,
-  selectedId: null,
+  nearestId: null,
   stopWatch: null,
   notice: null,
   placeLabel: null,
@@ -182,8 +182,8 @@ async function search() {
     }
 
     state.shelters = found;
-    // 동네가 바뀌면 전에 고른 대피소는 목록에 없다.
-    state.selectedId = null;
+    // 목록은 가까운 순으로 온다. 어느 것이 가장 가까운지 여기서 정해둔다.
+    state.nearestId = found[0]?.id ?? null;
     cacheShelters(found, state.origin);
 
     if (found.length === 0) {
@@ -211,6 +211,7 @@ function showCacheIfAny(reason) {
     return;
   }
   state.shelters = cached.shelters;
+  state.nearestId = cached.shelters[0]?.id ?? null;
   state.origin = state.origin ?? cached.origin;
   state.notice = `${reason ?? ''} 마지막으로 받은 정보를 보여드립니다.`.trim();
   draw();
@@ -220,7 +221,7 @@ function showCacheIfAny(reason) {
 function draw() {
   const mine = getActiveTrip()?.shelterId ?? null;
   ui.renderList(
-    state.shelters, state.counts, { onGo, onSelect }, state.notice, mine, state.selectedId,
+    state.shelters, state.counts, { onGo, onSelect }, state.notice, mine, state.nearestId,
   );
 
   // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
@@ -259,26 +260,23 @@ function onToggleCategory(key) {
   search();
 }
 
-// 소리로 듣기와 가족에게는 '지금 보고 있는 대피소'를 가리켜야 한다.
-// 고른 곳이 있으면 그것, 없으면 가장 가까운 곳이다.
+// 소리로 듣기와 가족에게는 맨 위 카드, 곧 '지금 보고 있는 곳'을 가리킨다.
 function currentShelter() {
-  if (state.selectedId) {
-    const found = state.shelters.find((s) => s.id === state.selectedId);
-    if (found) return found;
-  }
   return state.shelters[0] ?? null;
 }
 
+// 목록을 다시 늘어놓아도 어느 것이 가장 가까운지는 바뀌지 않는다.
+// 검색할 때 정해둔 값으로 판단한다.
 function isNearest(shelter) {
-  if (!shelter || state.shelters.length === 0) return true;
-  return shelter.id === state.shelters[0].id;
+  if (!shelter) return true;
+  if (state.nearestId === null) return true;
+  return shelter.id === state.nearestId;
 }
 
-// 목록 순서는 건드리지 않는다. 가장 가까운 곳은 늘 맨 위에 남아야 한다.
 function onSelect(shelter) {
-  state.selectedId = shelter.id;
+  state.shelters = [shelter, ...state.shelters.filter((s) => s.id !== shelter.id)];
   draw();
-  document.getElementById('card-selected')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function loadCategories() {
