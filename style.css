@@ -108,6 +108,13 @@ body {
   margin-bottom: 14px;
 }
 
+.card__tag {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
 .card__name { margin: 0; font-size: 23px; font-weight: 700; line-height: 1.35; }
 .card__meta { margin: 8px 0 0; font-size: 19px; color: var(--fg); font-weight: 700; }
 .card__addr { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
