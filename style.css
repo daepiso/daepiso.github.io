@@ -54,13 +54,18 @@ body {
 
 .chip {
   flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-height: 48px;
   padding: 0 18px;
   font-size: 17px;
   font-family: inherit;
-  color: var(--muted);
+  font-weight: 700;
+  /* 꺼진 칩도 또렷해야 한다. 흐릿하면 어르신은 글자를 못 읽는다. */
+  color: var(--fg);
   background: var(--bg);
-  border: 2px solid var(--line);
+  border: 2px solid var(--muted);
   border-radius: 999px;
   cursor: pointer;
 }
@@ -69,7 +74,12 @@ body {
   background: var(--fg);
   color: var(--bg);
   border-color: var(--fg);
-  font-weight: 700;
+}
+
+/* 켜진 칩에만 체크. 색만으로 구분하면 색약인 분이 못 알아본다. */
+.chip__check {
+  font-size: 15px;
+  line-height: 1;
 }
 
 /* ── 지도 */

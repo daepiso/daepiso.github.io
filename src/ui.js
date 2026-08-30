@@ -13,12 +13,24 @@ export function renderChips(selected, onToggle) {
   const nav = $('chips');
   nav.innerHTML = '';
   for (const cat of CATEGORIES) {
+    const on = selected.includes(cat.key);
+
     const btn = document.createElement('button');
     btn.className = 'chip';
     btn.type = 'button';
-    btn.textContent = cat.label;
     btn.setAttribute('aria-label', cat.aria);
-    btn.setAttribute('aria-pressed', String(selected.includes(cat.key)));
+    btn.setAttribute('aria-pressed', String(on));
+
+    if (on) {
+      // 색만으로 켜짐/꺼짐을 나타내면 색약인 분이 구분하지 못한다.
+      const check = document.createElement('span');
+      check.className = 'chip__check';
+      check.setAttribute('aria-hidden', 'true');
+      check.textContent = '✓';
+      btn.appendChild(check);
+    }
+
+    btn.appendChild(document.createTextNode(cat.label));
     btn.addEventListener('click', () => onToggle(cat.key));
     nav.appendChild(btn);
   }
