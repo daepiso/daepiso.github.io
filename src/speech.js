@@ -2,6 +2,43 @@ import { walkMinutes } from './geo.js';
 
 const oneLine = (t) => String(t ?? '').replace(/\s+/g, ' ').trim();
 
+// 음성 엔진은 '우성1차아파트'를 '우성 한 차 아파트'로 읽는다.
+// 대피소 이름과 층수의 숫자는 거의 언제나 한자어(일, 이, 삼)로 읽어야 맞다.
+// 화면에 보이는 글자는 그대로 두고, 소리로 읽을 때만 바꾼다.
+
+const 자릿수 = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+const 단위 = ['', '십', '백', '천'];
+
+export function sinoKorean(n) {
+  if (!Number.isInteger(n) || n < 0) return String(n);
+  if (n === 0) return '영';
+
+  const digits = String(n).split('').reverse();
+  let out = '';
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    const d = Number(digits[i]);
+    if (d === 0) continue;
+    // 십, 백, 천 앞의 '일'은 읽지 않는다. 일십일이 아니라 십일이다.
+    out += (d === 1 && i > 0 ? '' : 자릿수[d]) + 단위[i];
+  }
+  return out;
+}
+
+export function readableForSpeech(text) {
+  const s = String(text ?? '');
+  if (!s) return '';
+  return s
+    // 지하1~2층 -> 지하일에서 이층
+    .replace(/(\d+)\s*~\s*(\d+)/g, (whole, a, b) => (
+      a.length <= 4 && b.length <= 4
+        ? `${sinoKorean(Number(a))}에서 ${sinoKorean(Number(b))}`
+        : whole
+    ))
+    // 숫자 묶음을 통째로 본다. \d{1,4} 로 잡으면 17228 을 1722 와 8 로
+    // 잘라 읽는다. 네 자리를 넘으면 이름이 아니라 개수일 가능성이 높아 그대로 둔다.
+    .replace(/\d+/g, (m) => (m.length <= 4 ? sinoKorean(Number(m)) : m));
+}
+
 // isNearest 가 false 면 사용자가 목록에서 직접 고른 대피소다.
 // 그때도 '가장 가까운'이라고 말하면 사실이 아닌 안내가 된다.
 export function buildSpeechText(shelter, movingCount = 0, isNearest = true) {
@@ -42,7 +79,7 @@ export function speak(text) {
   let utter;
   try {
     synth.cancel();
-    utter = new window.SpeechSynthesisUtterance(text);
+    utter = new window.SpeechSynthesisUtterance(readableForSpeech(text));
     utter.lang = 'ko-KR';
     utter.rate = 0.9;
   } catch {
