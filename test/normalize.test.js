@@ -76,9 +76,9 @@ test('isOperating: 상태 정보가 없으면 남긴다', () => {
 
 test('dedupe: category+ext_id 가 같으면 뒤엣것을 남긴다', () => {
   const out = dedupe([
-    { category: 'flood', ext_id: '1', name: '옛것' },
-    { category: 'flood', ext_id: '1', name: '새것' },
-    { category: 'flood', ext_id: '2', name: '다른것' },
+    { category: 'temp_housing', ext_id: '1', name: '옛것' },
+    { category: 'temp_housing', ext_id: '1', name: '새것' },
+    { category: 'temp_housing', ext_id: '2', name: '다른것' },
   ]);
   assert.equal(out.length, 2);
   assert.equal(out.find((r) => r.ext_id === '1').name, '새것');

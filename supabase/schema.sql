@@ -9,7 +9,7 @@ create extension if not exists pgcrypto;
 create table if not exists shelters (
   id                uuid primary key default gen_random_uuid(),
   ext_id            text not null,
-  category          text not null check (category in ('civil_defense','earthquake','heat_cold','flood')),
+  category          text not null check (category in ('civil_defense','earthquake','heat_cold','temp_housing')),
   name              text not null,
   address           text not null,
   lat               double precision not null,

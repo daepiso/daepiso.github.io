@@ -17,7 +17,7 @@ const FILE_HINTS = [
   { category: 'civil_defense', match: /civil_defense|민방위/i },
   { category: 'earthquake', match: /earthquake|지진/i },
   { category: 'heat_cold', match: /heat|cold|무더위|한파|쉼터/i },
-  { category: 'flood', match: /flood|침수|이재민|주거/i },
+  { category: 'temp_housing', match: /temp_housing|이재민|임시주거|주거/i },
 ];
 
 // 공공데이터 CSV 는 대개 CP949 로 내려온다.

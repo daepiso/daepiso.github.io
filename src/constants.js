@@ -2,7 +2,7 @@ export const CATEGORIES = [
   { key: 'civil_defense', label: '민방위', aria: '민방위 대피시설' },
   { key: 'earthquake', label: '지진', aria: '지진 옥외대피장소' },
   { key: 'heat_cold', label: '폭염·한파', aria: '폭염 한파 쉼터' },
-  { key: 'flood', label: '침수', aria: '침수 대피소' },
+  { key: 'temp_housing', label: '임시주거', aria: '이재민 임시주거시설' },
 ];
 
 export const CATEGORY_KEYS = CATEGORIES.map((c) => c.key);
