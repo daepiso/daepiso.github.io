@@ -1,0 +1,27 @@
+name: 서버 깨우기
+
+# Supabase 무료 요금제는 1주일 동안 아무도 쓰지 않으면 프로젝트를 멈춘다.
+# 재난 앱은 평소에 아무도 쓰지 않으므로, 정작 재난이 났을 때 서버가
+# 멈춰 있을 수 있다. 매일 한 번 두드려 깨워 둔다.
+#
+# 깨우는 김에 대피소 조회가 실제로 되는지도 확인한다.
+# 실패하면 GitHub 이 winnywin21@gmail.com 으로 알려준다.
+
+on:
+  schedule:
+    # 매일 낮 12시(한국 시간). UTC 로는 03:00.
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 서버 깨우고 상태 확인
+        run: node scripts/healthcheck.mjs
