@@ -9,10 +9,15 @@
      색을 뒤집어 대비가 망가진다. 우리가 직접 두 벌을 정한다. */
   color-scheme: light dark;
 
+  /* 관공서 서비스는 회색 바탕에 흰 카드를 얹어 깊이를 준다.
+     온통 흰 바탕에 검은 테두리를 두르면 투박해 보인다. */
+  --page: #eff2f6;
   --bg: #ffffff;
-  --fg: #111111;
-  --muted: #4a4a4a;
-  --line: #c4c4c4;
+  --fg: #16181d;
+  --muted: #4a5260;
+  --line: #d5dae2;
+  --line-soft: #e6eaf0;
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 4px 12px rgba(16, 24, 40, 0.05);
   /* 안전디딤돌과 같은 계열의 파랑으로 맞춘다.
      머리말과 버튼 색이 따로 놀면 만들다 만 것처럼 보인다. */
   --primary: #12448f;
@@ -25,9 +30,10 @@
   /* 머리말은 안전디딤돌과 같은 진한 파랑으로 채운다.
      어르신이 재난 앱 하면 떠올리는 색이라 낯설지 않다.
      그 위에 도봉산 능선을 얹어 도봉구임을 드러낸다. */
-  --header-bg: #12448f;
+  --header-bg: #0f3d85;
+  --header-bg2: #12468d;
   --header-fg: #ffffff;
-  --header-sub: #c5d8f2;
+  --header-sub: #dfeafb;
   --ridge-far: rgba(255, 255, 255, 0.16);
   --ridge-near: rgba(255, 255, 255, 0.30);
 
@@ -44,10 +50,13 @@ body.text-xl { --fs: 1.32; }
 /* 어두운 화면. 밝은 화면과 같은 기준(명암비 7:1)을 지킨다. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111214;
-    --fg: #f5f5f5;
-    --muted: #c2c2c2;
-    --line: #55585c;
+    --page: #0c0e11;
+    --bg: #191c21;
+    --fg: #f2f4f7;
+    --muted: #c3cad6;
+    --line: #3a4048;
+    --line-soft: #2a2f36;
+    --shadow: none;
     --primary: #6fb2f5;
     --primary-fg: #06172b;
     --accent-bg: #17304a;
@@ -55,7 +64,8 @@ body.text-xl { --fs: 1.32; }
     --danger: #ff9b9b;
     --count-none-bg: #26282c;
 
-    --header-bg: #0c2a55;
+    --header-bg: #0a2246;
+    --header-bg2: #10305e;
     --header-fg: #f5f5f5;
     --header-sub: #a9c4e6;
     --ridge-far: rgba(255, 255, 255, 0.10);
@@ -77,7 +87,7 @@ body {
   font-size: calc(18px * var(--fs));
   line-height: 1.6;
   color: var(--fg);
-  background: var(--bg);
+  background: var(--page);
   padding-bottom: calc(var(--tap) + 40px);
   -webkit-text-size-adjust: 100%;
 }
@@ -86,7 +96,8 @@ body {
 
 .header {
   position: relative;
-  background: var(--header-bg);
+  /* 위에서 아래로 아주 옅게 밝아진다. 평평한 색보다 깊이가 생긴다. */
+  background: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg2) 100%);
   color: var(--header-fg);
   overflow: hidden;
 }
@@ -177,15 +188,16 @@ body {
   /* 꺼진 칩도 또렷해야 한다. 흐릿하면 어르신은 글자를 못 읽는다. */
   color: var(--fg);
   background: var(--bg);
-  border: 2px solid var(--muted);
-  border-radius: 999px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
 .chip[aria-checked="true"] {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
+  background: var(--primary);
+  color: var(--primary-fg);
+  border-color: var(--primary);
 }
 
 .chip__label {
@@ -224,9 +236,12 @@ body {
 .list { padding: 16px 20px 0; }
 
 .card {
-  border: 2px solid var(--fg);
-  border-radius: 14px;
-  padding: 18px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-left: 4px solid var(--primary);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
   margin-bottom: 14px;
 }
 
@@ -279,13 +294,14 @@ body {
   font-family: inherit;
   text-align: left;
   background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
 /* 가장 가까운 곳이 목록 아래로 내려가도 바로 알아볼 수 있게 한다. */
-.row--nearest { border: 2px solid var(--primary); }
+.row--nearest { border-color: var(--primary); border-left-width: 4px; }
 
 .row__tag {
   align-self: flex-start;
@@ -313,8 +329,9 @@ body {
   font-weight: 700;
   color: var(--fg);
   background: var(--bg);
-  border: 2px solid var(--fg);
+  border: 1px solid var(--line);
   border-radius: 12px;
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
@@ -346,7 +363,7 @@ body {
   gap: 10px;
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
   background: var(--bg);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-soft);
 }
 
 /* ── 동네 이름으로 찾기 */
@@ -355,9 +372,11 @@ body {
    예전에는 이 칸이 목록 아래에 있어 스크롤해야 나왔다. */
 .fallback {
   margin: 16px 20px 0;
-  padding: 18px;
-  border: 2px solid var(--primary);
-  border-radius: 14px;
+  padding: 20px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
 }
 
 .fallback__title { margin: 0 0 6px; font-size: calc(21px * var(--fs)); font-weight: 700; }
@@ -374,7 +393,7 @@ body {
   font-family: inherit;
   color: var(--fg);
   background: var(--bg);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 
