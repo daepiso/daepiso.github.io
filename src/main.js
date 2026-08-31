@@ -15,7 +15,7 @@ import { buildWalkDirectionsUrl } from './directions.js';
 import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
 import { openExternally } from './external.js';
-import { initMap, renderMarkers, isMapReady } from './map.js';
+import { initMap, renderMarkers, isMapReady, relayout } from './map.js';
 import { readSize, saveSize, applySize, nextSize, sizeLabel } from './textsize.js';
 import * as ui from './ui.js';
 
@@ -335,13 +335,19 @@ function draw() {
 function drawMap() {
   if (!state.origin) return;
   const el = document.getElementById('map');
+
+  // 만들기 전에 먼저 보이게 한다. 높이가 0 인 칸에 지도를 만들면
+  // 카카오가 자기 크기를 0 으로 기억해서 나중에 보여줘도 타일이 어긋난다.
+  ui.showMap();
+
   if (!isMapReady() && !initMap(el, state.origin)) {
     // 아직 카카오가 준비되지 않았을 수 있다. 준비되면 다시 부른다.
     ui.hideMap();
     return;
   }
-  // 앞서 숨겼더라도 이제 그릴 수 있으니 다시 보여준다.
-  ui.showMap();
+
+  // 숨어 있는 동안 칸의 크기가 달라졌을 수 있으니 다시 재게 한다.
+  relayout();
   renderMarkers(state.shelters, state.origin, onSelect);
 }
 
