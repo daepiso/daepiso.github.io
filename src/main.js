@@ -136,6 +136,11 @@ async function locateAndSearch() {
   // 먼저 스스로 찾아본 뒤, 정말 안 될 때만 부탁한다.
   ui.showFallback(false);
   ui.renderPlace('내 위치를 찾는 중입니다…');
+
+  // 위치를 받는 데 몇 초가 걸린다. 그동안 빈 화면을 보여주면
+  // 어르신은 앱이 멈춘 줄 안다. 지난번 목록을 먼저 띄워둔다.
+  showCacheWhileWaiting();
+
   try {
     state.origin = await getCurrentPosition();
     // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
@@ -189,15 +194,24 @@ async function search() {
     state.shelters = found;
     // 목록은 가까운 순으로 온다. 어느 것이 가장 가까운지 여기서 정해둔다.
     state.nearestId = found[0]?.id ?? null;
+    state.counts = new Map();
     cacheShelters(found, state.origin);
 
-    if (found.length === 0) {
-      state.notice = '가까운 대피소를 찾지 못했습니다. 도움이 필요하면 119로 전화하세요.';
-    }
+    state.notice = found.length === 0
+      ? '가까운 대피소를 찾지 못했습니다. 도움이 필요하면 119로 전화하세요.'
+      : null;
 
-    state.counts = await fetchCounts(found.map((s) => s.id));
+    // 대피소가 오면 곧바로 그린다.
+    // 인원 수를 기다렸다가 그리면 서버를 한 번 더 다녀오는 만큼 늦어진다.
+    // 급한 사람에게 필요한 것은 '어디로 가야 하나'이지 '몇 명이 가나'가 아니다.
     draw();
     drawMap();
+
+    fetchCounts(found.map((s) => s.id)).then((counts) => {
+      if (counts.size === 0) return;
+      state.counts = counts;
+      draw();
+    });
 
     // 칩의 개수는 앱을 막지 않는다. 늦게 와도 그때 다시 그리면 된다.
     fetchNearbyCounts({ lat: state.origin.lat, lng: state.origin.lng, radiusM: radius })
@@ -217,6 +231,18 @@ async function search() {
   } finally {
     ui.setBusy(false);
   }
+}
+
+// 위치를 찾는 동안 지난번 목록을 미리 보여준다.
+// 곧 진짜 목록으로 바뀐다.
+function showCacheWhileWaiting() {
+  if (state.shelters.length > 0) return;
+  const cached = readCachedShelters();
+  if (!cached || cached.shelters.length === 0) return;
+  state.shelters = cached.shelters;
+  state.nearestId = cached.shelters[0]?.id ?? null;
+  state.notice = '지난번에 찾은 목록입니다. 지금 위치로 다시 찾고 있습니다.';
+  draw();
 }
 
 function showCacheIfAny(reason) {
