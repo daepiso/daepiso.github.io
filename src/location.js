@@ -1,4 +1,6 @@
-import { GPS_TIMEOUT_MS, GPS_FAST_TIMEOUT_MS, STORAGE_KEYS } from './constants.js';
+import {
+  GPS_TIMEOUT_MS, GPS_FAST_TIMEOUT_MS, GPS_CACHE_MAX_AGE_MS, STORAGE_KEYS,
+} from './constants.js';
 
 // 직접 입력한 동네를 기억한다.
 // 기억하지 않으면 새로고침할 때마다 '지금 계신 곳을 알 수 없습니다'로
@@ -46,17 +48,33 @@ function askPosition(options) {
 
 const isDenied = (err) => err?.code === 1; // PERMISSION_DENIED
 
-export async function getFastPosition() {
-  if (!isGeolocationSupported()) throw new Error('UNSUPPORTED');
-  try {
-    return await askPosition({
+// 첫 위치는 두 가지 방법을 동시에 물어보고 먼저 답하는 쪽을 쓴다.
+//
+// 하나씩 차례로 하면 앞의 것이 시간 초과될 때까지 뒤의 것이 시작도 못 한다.
+// 기지국 측위가 느린 날에는 그만큼 통째로 늦어진다.
+// 둘을 같이 띄우면 그날 사정에 따라 빠른 쪽이 답한다.
+export function getFastPosition() {
+  if (!isGeolocationSupported()) return Promise.reject(new Error('UNSUPPORTED'));
+
+  const 시도 = [
+    // 기지국·와이파이. 대개 이쪽이 먼저 답한다.
+    askPosition({
       enableHighAccuracy: false,
       timeout: GPS_FAST_TIMEOUT_MS,
-      maximumAge: 300_000,
-    });
-  } catch (err) {
-    throw new Error(isDenied(err) ? 'DENIED' : 'FAILED');
-  }
+      maximumAge: GPS_CACHE_MAX_AGE_MS,
+    }),
+    // GPS 위성. 밖에서는 이쪽이 먼저 답하기도 한다.
+    askPosition({
+      enableHighAccuracy: true,
+      timeout: GPS_FAST_TIMEOUT_MS,
+      maximumAge: GPS_CACHE_MAX_AGE_MS,
+    }),
+  ];
+
+  return Promise.any(시도).catch((모음) => {
+    const 이유들 = 모음?.errors ?? [];
+    throw new Error(이유들.some(isDenied) ? 'DENIED' : 'FAILED');
+  });
 }
 
 export async function getAccuratePosition() {

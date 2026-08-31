@@ -16,10 +16,18 @@ export const HEARTBEAT_INTERVAL_MS = 30_000;
 export const COUNT_POLL_INTERVAL_MS = 20_000;
 export const TRIP_STALE_MS = 120_000;
 export const ARRIVAL_RADIUS_M = 100;
-// 기지국·와이파이로 잡는 빠른 시도
-export const GPS_FAST_TIMEOUT_MS = 2_000;
+// 첫 위치를 잡는 데 주는 시간.
+// 2초로 줄였더니 대부분 시간 초과로 실패해서 오히려 못 찾았다.
+// 폰에서 기지국·와이파이 측위는 보통 2~5초 걸린다.
+// 기다리는 동안 지난번 목록과 도는 표시를 보여주므로 넉넉히 준다.
+export const GPS_FAST_TIMEOUT_MS = 10_000;
+
 // 정밀 GPS는 첫 화면을 막지 않고 뒤에서 기다린다.
-export const GPS_TIMEOUT_MS = 6_000;
+// 위성 신호는 실내나 건물 사이에서 20초까지 걸린다.
+export const GPS_TIMEOUT_MS = 20_000;
+
+// 최근에 잡아둔 위치는 그대로 쓴다. 있으면 기다림 없이 즉시 답한다.
+export const GPS_CACHE_MAX_AGE_MS = 300_000;
 export const WALK_METERS_PER_MINUTE = 67;
 
 export const STORAGE_KEYS = {
