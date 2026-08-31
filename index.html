@@ -40,7 +40,10 @@
     <button id="retry-location" class="btn fallback__retry" type="button">현재 위치 다시 찾기</button>
   </section>
 
-  <p id="loading" class="notice" hidden>대피소를 찾고 있습니다…</p>
+  <p id="loading" class="loading" role="status" hidden>
+    <span class="loading__spinner" aria-hidden="true"></span>
+    <span id="loading-text">내 위치를 찾는 중입니다…</span>
+  </p>
 
   <p id="spoken" class="spoken" role="status" hidden></p>
 

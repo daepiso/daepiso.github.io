@@ -131,7 +131,7 @@ function loadKakao() {
 // ─────────────────────────────── 검색
 
 async function locateAndSearch() {
-  ui.setBusy(true);
+  ui.setBusy(true, '내 위치를 찾는 중입니다…');
   // 찾는 동안에는 '동네 이름을 넣으라'는 칸을 보이지 않는다.
   // 먼저 스스로 찾아본 뒤, 정말 안 될 때만 부탁한다.
   ui.showFallback(false);
@@ -175,7 +175,7 @@ async function locateAndSearch() {
 async function search() {
   if (!state.origin) return;
   state.notice = null;
-  ui.setBusy(true);
+  ui.setBusy(true, '가까운 대피소를 찾고 있습니다…');
 
   try {
     let found = [];

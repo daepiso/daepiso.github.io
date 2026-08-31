@@ -263,7 +263,10 @@ export function hideSpokenText() {
   $('spoken').hidden = true;
 }
 
-export function setBusy(busy) {
+// 글자만 있으면 멈춘 건지 도는 건지 알 수 없다.
+// 돌아가는 표시를 함께 보여주고, 지금 무엇을 하는 중인지 알려준다.
+export function setBusy(busy, message) {
   $('list').setAttribute('aria-busy', String(busy));
   $('loading').hidden = !busy;
+  if (busy && message) $('loading-text').textContent = message;
 }
