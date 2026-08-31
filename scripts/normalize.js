@@ -33,6 +33,35 @@ export const FIELD_MAP = {
     status: null,
     tel: 'TELNO',
   },
+
+  // 무더위쉼터는 이름 체계가 다르다. 시설번호가 한 칸에 고유하게 들어 있다.
+  heat_cold: {
+    ext: 'RSTR_FCLTY_NO',
+    name: 'RSTR_NM',
+    addr: 'RN_DTL_ADRES',
+    addrAlt: 'DTL_ADRES',
+    lat: 'LA',
+    lng: 'LO',
+    cap: 'USE_PSBL_NMPR',
+    detail: null,
+    status: null,
+    tel: null,
+  },
+
+  // 이재민 임시주거시설은 지진과 같은 체계다.
+  // 시설번호가 지역 안에서만 고유하므로 지역코드를 앞에 붙인다.
+  temp_housing: {
+    extParts: ['ARCD', 'ACMDFCLTY_SN'],
+    name: 'VT_ACMDFCLTY_NM',
+    addr: 'DTL_ADRES',
+    addrAlt: 'RDNMADR_CD',
+    lat: 'LA',
+    lng: 'LO',
+    cap: 'VT_ACMD_PSBL_NMPR',
+    detail: null,
+    status: null,
+    tel: null,
+  },
 };
 
 const oneLine = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();

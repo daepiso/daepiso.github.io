@@ -82,6 +82,53 @@ test('운영상태 칸이 없는 종류도 통과시킨다', () => {
   assert.equal(isValidRow(row), true);
 });
 
+// safetydata 오픈API 의 실제 응답에서 가져온 값이다.
+const 무더위행 = {
+  RSTR_FCLTY_NO: '2826000347',
+  RSTR_NM: '  가재울역트루엘에코시티  경로당 ',
+  RN_DTL_ADRES: '인천광역시 서해구 열우물로240번길 20',
+  DTL_ADRES: '627',
+  LA: '37.484559',
+  LO: '126.686001',
+  USE_PSBL_NMPR: '30',
+};
+
+const 임시주거행 = {
+  ARCD: '5113000000',
+  ACMDFCLTY_SN: '173',
+  VT_ACMDFCLTY_NM: '개운경로당',
+  DTL_ADRES: '강원특별자치도 원주시 도말리길 14-1 (개운동)407-6',
+  LA: '37.33854265281242',
+  LO: '127.95733720064163',
+  VT_ACMD_PSBL_NMPR: '30',
+};
+
+test('normalizeRow: 무더위쉼터를 공통 스키마로 바꾼다', () => {
+  const row = normalizeRow('heat_cold', 무더위행);
+  assert.equal(row.ext_id, '2826000347');
+  assert.equal(row.name, '가재울역트루엘에코시티 경로당');
+  assert.equal(row.address, '인천광역시 서해구 열우물로240번길 20');
+  assert.equal(row.lat, 37.484559);
+  assert.equal(row.capacity, 30);
+  assert.equal(isValidRow(row), true);
+});
+
+test('normalizeRow: 이재민 임시주거시설을 공통 스키마로 바꾼다', () => {
+  const row = normalizeRow('temp_housing', 임시주거행);
+  assert.equal(row.ext_id, '5113000000-173');
+  assert.equal(row.name, '개운경로당');
+  assert.ok(row.address.includes('원주시'));
+  assert.equal(row.capacity, 30);
+  assert.equal(isValidRow(row), true);
+});
+
+// 임시주거도 시설번호가 지역 안에서만 고유하다.
+test('임시주거도 지역이 다르면 다른 곳으로 본다', () => {
+  const a = normalizeRow('temp_housing', 임시주거행);
+  const b = normalizeRow('temp_housing', { ...임시주거행, ARCD: '2623000000' });
+  assert.notEqual(a.ext_id, b.ext_id);
+});
+
 test('normalizeRow: 모르는 종류는 던진다', () => {
   assert.throws(() => normalizeRow('unknown', 민방위행), /알 수 없는 종류/);
 });

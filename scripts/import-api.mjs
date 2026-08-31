@@ -12,34 +12,35 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 
-const KEY = process.env.SAFETYDATA_KEY;
-
 // 재난안전데이터공유플랫폼(safetydata.go.kr)의 엔드포인트.
-// 주소는 마이페이지 > API키 발급 내역의 'URL 주소'에서 확인한 것이다.
+// 주소와 키는 마이페이지 > API키 발급 내역에서 확인한 것이다.
+//
+// 키는 데이터마다 따로 발급된다. 하나로 다 되지 않는다.
+// 남의 키로 부르면 SERVICE ACCESS DENIED 가 난다.
 const SOURCES = {
   earthquake: {
     label: '지진 옥외대피장소',
     url: 'https://www.safetydata.go.kr/V2/api/DSSP-IF-10943',
+    keyEnv: 'SAFETYDATA_KEY_EARTHQUAKE',
   },
   heat_cold: {
     label: '무더위쉼터',
-    // 아직 모른다. API키 발급 내역의 'URL 주소'를 보고 채우거나
-    // 실행할 때 --url 로 넘긴다. 그럴듯한 주소를 미리 적어두면
-    // 나중에 왜 안 되는지 찾느라 시간을 버린다.
-    url: null,
+    url: 'https://www.safetydata.go.kr/V2/api/DSSP-IF-10942',
+    keyEnv: 'SAFETYDATA_KEY_HEAT_COLD',
   },
   temp_housing: {
     label: '이재민 임시주거시설',
-    url: null,
+    url: 'https://www.safetydata.go.kr/V2/api/DSSP-IF-10945',
+    keyEnv: 'SAFETYDATA_KEY_TEMP_HOUSING',
   },
 };
 
 const PAGE_SIZE = 1000;
-const MAX_PAGES = 60;
+const MAX_PAGES = 120;
 
 function buildUrl(src, page) {
   const u = new URL(src.url);
-  u.searchParams.set('serviceKey', KEY);
+  u.searchParams.set('serviceKey', src.key);
   u.searchParams.set('pageNo', String(page));
   u.searchParams.set('numOfRows', String(PAGE_SIZE));
   u.searchParams.set('returnType', 'json');
@@ -129,10 +130,6 @@ async function main() {
   const inspect = args.includes('--inspect');
   const category = args.find((a) => !a.startsWith('--'));
 
-  if (!KEY) {
-    console.error('SAFETYDATA_KEY 가 없습니다. .env 에 넣고 --env-file=.env 로 실행하세요.');
-    process.exit(1);
-  }
   const base = SOURCES[category];
   if (!base) {
     console.error(`쓸 수 있는 종류: ${Object.keys(SOURCES).join(', ')}`);
@@ -141,7 +138,14 @@ async function main() {
 
   // --url 로 엔드포인트를 덮어쓸 수 있다. 주소를 모를 때 바로 시험해 본다.
   const override = args.find((a) => a.startsWith('--url='))?.slice(6);
-  const src = { ...base, url: override ?? base.url };
+  const src = { ...base, url: override ?? base.url, key: process.env[base.keyEnv] };
+
+  if (!src.key) {
+    console.error(`${base.keyEnv} 가 없습니다.`);
+    console.error('safetydata.go.kr 는 데이터마다 키가 따로 발급됩니다.');
+    console.error('.env 에 넣고 --env-file=.env 로 실행하세요.');
+    process.exit(1);
+  }
   if (!src.url) {
     console.error(`${base.label} 의 API 주소를 모릅니다.`);
     console.error('safetydata.go.kr 마이페이지 > API키 발급 내역의');
