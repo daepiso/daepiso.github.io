@@ -131,3 +131,34 @@ button,input{font:inherit}
 @media (prefers-color-scheme:dark){:root{--page:#101821;--primary:#68b6fa;--primary-deep:#d5ecff;--accent-bg:#18354d;--accent-fg:#add8fa;--header-bg:#123e67;--header-bg2:#185b91}.filter-panel,.card{background:var(--bg);border-color:var(--line)}.chip__icon{background:#26343e;border-color:#40515e;color:#c4d0d8}.map-frame{border-color:var(--line)}}
 @media (min-width:720px){.content-shell{padding-top:18px}.map-frame{margin-left:28px;margin-right:28px}.map{height:440px}.filter-panel{margin-left:28px;margin-right:28px}.header__inner{padding-top:16px;padding-bottom:16px}}
 @media (max-width:420px){.content-shell{padding-top:8px}.map-frame{margin-left:8px;margin-right:8px;border-radius:11px}.map{height:44vh;min-height:310px}.filter-panel{margin-left:8px;margin-right:8px;padding-left:7px;padding-right:7px}.chip{font-size:calc(11px * var(--fs));padding-left:2px;padding-right:2px}.header__place{margin-top:8px}.header__inner{padding-right:90px}}
+
+/* 고르는 것과 하는 것을 눈으로 갈라놓는다.
+   종류 네 칸과 아래 띠가 나란히 놓이면 여섯 개가 한 줄로 보여
+   무엇을 눌러야 할지 헷갈린다. */
+
+/* 가족에게 알리기는 카드 안, 길찾기 아래에 둔다.
+   길찾기가 주된 일이므로 그보다 약하게 보여야 한다. */
+.card__share{width:100%;margin-top:9px;color:var(--accent-fg);background:var(--accent-bg);border-color:#bcd8ef;box-shadow:none}
+
+/* 아래 띠는 다른 층이라는 것이 한눈에 보이게 위쪽 선을 진하게 준다. */
+.footer{border-top:2px solid #c3d2df;background:color-mix(in srgb,var(--bg) 97%,transparent)}
+
+/* 고르는 칸의 그림은 눌리는 단추가 아니다. 상자를 벗겨 그림만 남긴다.
+   고른 것만 파란 상자가 씌워져 무엇이 켜졌는지 더 분명해진다. */
+.chip__icon{color:#5b7183;background:transparent;border-color:transparent;box-shadow:none}
+
+/* 좁은 폰에서 숨겼던 안내를 되살린다. 이 한 줄이 없으면
+   그림 넉 줄만 남아 무엇을 하는 자리인지 알 수 없다. */
+@media (max-width:420px){
+  .section-heading{display:block}
+  .section-heading span{display:block;margin-top:2px}
+}
+
+@media (prefers-color-scheme:dark){
+  /* 밝은 화면용 남색이 그대로 남아 어두운 바탕에 묻혔다.
+     제목이 안 보이면 아래 네 칸이 무엇을 고르는 자리인지 알 수 없다. */
+  .section-heading h2{color:var(--fg)}
+  .card__share{background:var(--accent-bg);border-color:#2c5a80}
+  .chip__icon{color:#a9bccb;background:transparent;border-color:transparent}
+  .footer{border-top-color:#2b3b48}
+}

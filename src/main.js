@@ -319,7 +319,7 @@ function drawChips() {
 function draw() {
   const mine = getActiveTrip()?.shelterId ?? null;
   ui.renderList(
-    state.shelters, state.counts, { onGo, onSelect }, state.notice, mine, state.nearestId,
+    state.shelters, state.counts, { onGo, onSelect, onShare }, state.notice, mine, state.nearestId,
   );
 
   // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
@@ -418,6 +418,14 @@ function saveCategory() {
 
 // ─────────────────────────────── 길찾기와 이동 기록
 
+// 카드에 적힌 그 대피소를 알린다.
+// 길을 나선 뒤라면 이미 가고 있는 곳이 우선이다.
+function onShare(shelter) {
+  const target = state.target ?? shelter ?? currentShelter();
+  if (!target) return;
+  openSmsApp(target);
+}
+
 async function onGo(shelter) {
   state.target = shelter;
   try {
@@ -467,12 +475,6 @@ function wireButtons() {
     speak(text).then((spoke) => {
       if (!spoke) ui.showOpenInChrome(() => openExternally());
     });
-  });
-
-  on('share', 'click', () => {
-    const target = state.target ?? currentShelter();
-    if (!target) return;
-    openSmsApp(target);
   });
 
   on('retry-location', 'click', () => {

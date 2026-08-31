@@ -182,6 +182,16 @@ function topCard(shelter, count, handlers, activeShelterId, isNearest) {
   go.addEventListener('click', () => handlers.onGo(shelter));
   card.appendChild(go);
 
+  // 가족에게 알리는 것은 '이 대피소로 간다'는 뜻이다.
+  // 화면 아래 띠에 떠 있으면 어느 곳을 알리는지 알 수 없고,
+  // 종류 고르는 단추들과 나란히 놓여 헷갈린다. 그래서 카드 안에 둔다.
+  const share = document.createElement('button');
+  share.className = 'btn btn--block card__share';
+  share.type = 'button';
+  share.textContent = '가족에게 알리기';
+  share.addEventListener('click', () => handlers.onShare(shelter));
+  card.appendChild(share);
+
   return card;
 }
 
