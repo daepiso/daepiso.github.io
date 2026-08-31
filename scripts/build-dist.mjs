@@ -42,13 +42,32 @@ function version() {
   }
 }
 
-function stampVersion(htmlPath) {
-  const v = version();
+function stampVersion(htmlPath, v) {
   const html = readFileSync(htmlPath, 'utf-8')
     .replace(/(href="\.\/style\.css)"/, `$1?v=${v}"`)
     .replace(/(src="\.\/src\/main\.js)"/, `$1?v=${v}"`);
   writeFileSync(htmlPath, html, 'utf-8');
   console.log(`버전 ${v} 를 붙였습니다.`);
+}
+
+// main.js 만 새 주소여도 그 안에서 불러오는 location.js 같은 모듈은
+// 예전 주소 그대로라 브라우저 캐시가 섞일 수 있다. 모든 상대 모듈
+// import 에 같은 버전을 붙여 한 배포의 파일끼리만 함께 쓰이게 한다.
+function stampModuleImports(dir, v) {
+  for (const entry of readdirSync(dir)) {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) {
+      stampModuleImports(path, v);
+      continue;
+    }
+    if (!entry.endsWith('.js')) continue;
+    const source = readFileSync(path, 'utf-8');
+    const stamped = source.replace(
+      /((?:from\s+|import\s*\(\s*)['"])(\.\.?\/[^'"]+\.js)(['"])/g,
+      `$1$2?v=${v}$3`,
+    );
+    writeFileSync(path, stamped, 'utf-8');
+  }
 }
 
 function main() {
@@ -65,7 +84,9 @@ function main() {
     throw new Error('src/config.js 가 없습니다. config.example.js 를 복사해 키를 채우세요.');
   }
 
-  stampVersion(join(OUT, 'index.html'));
+  const v = version();
+  stampVersion(join(OUT, 'index.html'), v);
+  stampModuleImports(join(OUT, 'src'), v);
 
   let count = 0;
   let bytes = 0;
