@@ -32,7 +32,14 @@
   --ridge-near: rgba(255, 255, 255, 0.30);
 
   --tap: 56px;
+
+  /* 글자 크기 배율. 어르신이 직접 키울 수 있다.
+     모든 글자 크기에 이 값을 곱하므로 여기 한 곳만 바꾸면 된다. */
+  --fs: 1;
 }
+
+body.text-l  { --fs: 1.15; }
+body.text-xl { --fs: 1.32; }
 
 /* 어두운 화면. 밝은 화면과 같은 기준(명암비 7:1)을 지킨다. */
 @media (prefers-color-scheme: dark) {
@@ -67,7 +74,7 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  font-size: 18px;
+  font-size: calc(18px * var(--fs));
   line-height: 1.6;
   color: var(--fg);
   background: var(--bg);
@@ -84,18 +91,47 @@ body {
   overflow: hidden;
 }
 
-.header__inner { padding: 18px 20px 26px; }
+.header__inner {
+  position: relative;
+  padding: 18px 20px 26px;
+  /* 글자 크기 버튼이 제목을 덮지 않도록 자리를 비워둔다 */
+  padding-right: 96px;
+}
+
+/* 글자 크기 조절. 안전디딤돌의 [가] 버튼과 같은 자리에 둔다. */
+.header__size {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 64px;
+  min-height: 56px;
+  padding: 4px 8px;
+  font-family: inherit;
+  color: var(--header-fg);
+  background: rgba(255, 255, 255, 0.14);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.header__size-glyph { font-size: 20px; font-weight: 700; line-height: 1; }
+.header__size-label { font-size: 12px; line-height: 1.2; }
 
 .header__title {
   margin: 0;
-  font-size: 27px;
+  font-size: calc(27px * var(--fs));
   font-weight: 700;
   letter-spacing: -0.5px;
 }
 
 .header__place {
   margin: 6px 0 0;
-  font-size: 17px;
+  font-size: calc(17px * var(--fs));
   color: var(--header-sub);
 }
 
@@ -130,12 +166,14 @@ body {
   align-items: flex-start;
   justify-content: center;
   gap: 2px;
-  min-height: 62px;
+  min-height: calc(62px * var(--fs));
   padding: 8px 14px;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   font-family: inherit;
   font-weight: 700;
-  white-space: nowrap;
+  /* 글자를 키우면 '이재민임시주거시설'이 한 줄에 안 들어간다.
+     두 칸 배치를 지키면서 이름이 줄바꿈되게 둔다. */
+  overflow-wrap: anywhere;
   /* 꺼진 칩도 또렷해야 한다. 흐릿하면 어르신은 글자를 못 읽는다. */
   color: var(--fg);
   background: var(--bg);
@@ -150,17 +188,22 @@ body {
   border-color: var(--fg);
 }
 
-.chip__label { display: flex; align-items: center; gap: 4px; }
+.chip__label {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
 
 /* 켜진 칩에만 체크. 색만으로 구분하면 색약인 분이 못 알아본다. */
 .chip__check {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   line-height: 1;
 }
 
 /* 눌러보기 전에 근처에 몇 곳이 있는지 알 수 있게 한다. */
 .chip__count {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   font-weight: 400;
   opacity: 0.85;
 }
@@ -193,22 +236,22 @@ body {
   display: inline-block;
   margin: 0 0 10px;
   padding: 6px 14px;
-  font-size: 18px;
+  font-size: calc(18px * var(--fs));
   font-weight: 700;
   color: var(--primary-fg);
   background: var(--primary);
   border-radius: 999px;
 }
 
-.card__name { margin: 0; font-size: 23px; font-weight: 700; line-height: 1.35; }
-.card__meta { margin: 8px 0 0; font-size: 19px; color: var(--fg); font-weight: 700; }
-.card__addr { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
+.card__name { margin: 0; font-size: calc(23px * var(--fs)); font-weight: 700; line-height: 1.35; }
+.card__meta { margin: 8px 0 0; font-size: calc(19px * var(--fs)); color: var(--fg); font-weight: 700; }
+.card__addr { margin: 4px 0 0; font-size: calc(17px * var(--fs)); color: var(--muted); }
 
 .card__count {
   display: inline-block;
   margin: 12px 0 0;
   padding: 8px 16px;
-  font-size: 18px;
+  font-size: calc(18px * var(--fs));
   font-weight: 700;
   color: var(--accent-fg);
   background: var(--accent-bg);
@@ -248,7 +291,7 @@ body {
   align-self: flex-start;
   margin-bottom: 4px;
   padding: 3px 10px;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   font-weight: 700;
   color: var(--primary-fg);
   background: var(--primary);
@@ -256,16 +299,16 @@ body {
 }
 
 .row__text { display: flex; flex-direction: column; gap: 3px; }
-.row__name { font-size: 20px; font-weight: 700; color: var(--fg); }
-.row__meta { font-size: 17px; color: var(--muted); }
-.row__chevron { font-size: 26px; color: var(--muted); }
+.row__name { font-size: calc(20px * var(--fs)); font-weight: 700; color: var(--fg); }
+.row__meta { font-size: calc(17px * var(--fs)); color: var(--muted); }
+.row__chevron { font-size: calc(26px * var(--fs)); color: var(--muted); }
 
 /* ── 버튼 */
 
 .btn {
-  min-height: var(--tap);
+  min-height: calc(var(--tap) * var(--fs));
   padding: 0 20px;
-  font-size: 19px;
+  font-size: calc(19px * var(--fs));
   font-family: inherit;
   font-weight: 700;
   color: var(--fg);
@@ -279,13 +322,20 @@ body {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--primary-fg);
-  font-size: 21px;
-  min-height: 62px;
+  font-size: calc(21px * var(--fs));
+  min-height: calc(62px * var(--fs));
 }
 
 .btn--block { display: block; width: 100%; }
 .btn--wide { flex: 1; }
 .btn:active { transform: scale(0.99); }
+
+/* 글자를 아주 크게 하면 '소리로 듣기'가 두 줄로 잘려 보인다.
+   좌우 여백을 줄이고 줄 간격을 주어 두 줄이 되어도 읽히게 한다. */
+.footer .btn {
+  padding: 10px 8px;
+  line-height: 1.2;
+}
 
 .footer {
   position: fixed;
@@ -310,8 +360,8 @@ body {
   border-radius: 14px;
 }
 
-.fallback__title { margin: 0 0 6px; font-size: 21px; font-weight: 700; }
-.fallback__help { margin: 0 0 14px; font-size: 18px; color: var(--muted); }
+.fallback__title { margin: 0 0 6px; font-size: calc(21px * var(--fs)); font-weight: 700; }
+.fallback__help { margin: 0 0 14px; font-size: calc(18px * var(--fs)); color: var(--muted); }
 .fallback__row { display: flex; gap: 8px; }
 .fallback__retry { width: 100%; margin-top: 12px; }
 
@@ -320,7 +370,7 @@ body {
   min-width: 0;
   min-height: var(--tap);
   padding: 0 14px;
-  font-size: 19px;
+  font-size: calc(19px * var(--fs));
   font-family: inherit;
   color: var(--fg);
   background: var(--bg);
@@ -340,7 +390,7 @@ body {
   gap: 12px;
   padding: 20px;
   margin: 0 0 12px;
-  font-size: 19px;
+  font-size: calc(19px * var(--fs));
   font-weight: 700;
   color: var(--fg);
 }
@@ -377,12 +427,12 @@ body {
 .notice {
   padding: 18px 20px;
   margin: 0 0 12px;
-  font-size: 19px;
+  font-size: calc(19px * var(--fs));
   color: var(--muted);
   text-align: center;
 }
 
-.error { margin: 10px 0 0; font-size: 17px; color: var(--danger); font-weight: 700; }
+.error { margin: 10px 0 0; font-size: calc(17px * var(--fs)); color: var(--danger); font-weight: 700; }
 
 /* ── 첫 진입 안내 */
 
@@ -403,7 +453,7 @@ body {
   border-radius: 16px;
 }
 
-.consent__box h1 { margin: 0 0 12px; font-size: 26px; }
+.consent__box h1 { margin: 0 0 12px; font-size: calc(26px * var(--fs)); }
 .consent__box p { margin: 0 0 20px; }
 
 .spoken {
@@ -417,7 +467,7 @@ body {
 
 .spoken__text {
   display: block;
-  font-size: 22px;
+  font-size: calc(22px * var(--fs));
   font-weight: 700;
   line-height: 1.5;
 }
@@ -425,7 +475,7 @@ body {
 .spoken__hint {
   display: block;
   margin-top: 12px;
-  font-size: 16px;
+  font-size: calc(16px * var(--fs));
   font-weight: 400;
   line-height: 1.5;
 }

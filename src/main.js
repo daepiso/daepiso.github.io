@@ -16,6 +16,7 @@ import { buildSpeechText, speak } from './speech.js';
 import { openSmsApp } from './share.js';
 import { openExternally } from './external.js';
 import { initMap, renderMarkers, isMapReady } from './map.js';
+import { readSize, saveSize, applySize, nextSize, sizeLabel } from './textsize.js';
 import * as ui from './ui.js';
 
 const state = {
@@ -37,6 +38,9 @@ const state = {
 // 예전에는 await loadKakao() 를 먼저 걸어서, 카카오 서버가 응답하지 않으면
 // 칩도 목록도 위치 안내도 영영 나오지 않고 빈 화면만 남았다.
 async function boot() {
+  // 글자 크기는 화면이 그려지기 전에 걸어야 깜빡이지 않는다.
+  setupTextSize();
+
   await gateConsent();
 
   drawChips();
@@ -62,6 +66,19 @@ function refreshPlaceLabel() {
     if (!place) return;
     state.placeLabel = place;
     ui.renderPlace(place);
+  });
+}
+
+function setupTextSize() {
+  let 지금 = readSize();
+  applySize(지금);
+  ui.renderTextSize(sizeLabel(지금));
+
+  on('text-size', 'click', () => {
+    지금 = nextSize(지금);
+    saveSize(지금);
+    applySize(지금);
+    ui.renderTextSize(sizeLabel(지금));
   });
 }
 

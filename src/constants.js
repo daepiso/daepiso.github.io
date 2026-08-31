@@ -29,4 +29,5 @@ export const STORAGE_KEYS = {
   shelterCache: 'shelter.cache',
   activeTrip: 'shelter.activeTrip',
   savedPlace: 'shelter.place',
+  textSize: 'shelter.textSize',
 };

@@ -5,6 +5,15 @@ import { formatDistance, walkMinutes } from './geo.js';
 
 const $ = (id) => document.getElementById(id);
 
+// 지금 글자 크기가 무엇인지 버튼에 적어둔다.
+// '가'만 있으면 눌러도 뭐가 바뀌었는지 알기 어렵다.
+export function renderTextSize(label) {
+  const el = $('text-size-label');
+  if (el) el.textContent = label;
+  const btn = $('text-size');
+  if (btn) btn.setAttribute('aria-label', `글자 크기 ${label}. 눌러서 바꾸기`);
+}
+
 export function renderPlace(text) {
   $('place').textContent = text;
 }
