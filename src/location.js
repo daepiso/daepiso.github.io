@@ -46,17 +46,8 @@ function askPosition(options) {
 
 const isDenied = (err) => err?.code === 1; // PERMISSION_DENIED
 
-// 위치는 두 번에 걸쳐 구한다.
-//
-// GPS 정밀 측위(enableHighAccuracy)는 위성 신호를 기다리므로 실내나
-// 건물 사이에서는 20~30초가 걸리거나 아예 실패한다. 그것부터 하면
-// 어르신은 빈 화면만 보다가 '위치를 찾지 못했습니다'를 만난다.
-//
-// 그래서 기지국과 와이파이로 잡는 빠른 방식을 먼저 쓴다. 대피소를
-// 찾는 데는 이 정도 정확도로 충분하다. 그게 안 되면 GPS 를 오래 기다린다.
-export async function getCurrentPosition() {
+export async function getFastPosition() {
   if (!isGeolocationSupported()) throw new Error('UNSUPPORTED');
-
   try {
     return await askPosition({
       enableHighAccuracy: false,
@@ -64,9 +55,12 @@ export async function getCurrentPosition() {
       maximumAge: 300_000,
     });
   } catch (err) {
-    if (isDenied(err)) throw new Error('DENIED');
+    throw new Error(isDenied(err) ? 'DENIED' : 'FAILED');
   }
+}
 
+export async function getAccuratePosition() {
+  if (!isGeolocationSupported()) throw new Error('UNSUPPORTED');
   try {
     return await askPosition({
       enableHighAccuracy: true,
@@ -76,6 +70,23 @@ export async function getCurrentPosition() {
   } catch (err) {
     throw new Error(isDenied(err) ? 'DENIED' : 'FAILED');
   }
+}
+
+// 위치는 두 번에 걸쳐 구한다.
+//
+// GPS 정밀 측위(enableHighAccuracy)는 위성 신호를 기다리므로 실내나
+// 건물 사이에서는 20~30초가 걸리거나 아예 실패한다. 그것부터 하면
+// 어르신은 빈 화면만 보다가 '위치를 찾지 못했습니다'를 만난다.
+//
+// 그래서 기지국과 와이파이로 잡는 빠른 방식을 먼저 쓴다. 대피소를
+// 찾는 데는 이 정도 정확도로 충분하다. 그게 안 되면 GPS 를 오래 기다린다.
+export async function getCurrentPosition() {
+  try {
+    return await getFastPosition();
+  } catch (err) {
+    if (err.message === 'DENIED') throw err;
+  }
+  return getAccuratePosition();
 }
 
 // 도착 판정을 위해 위치를 계속 지켜본다. 중지 함수를 돌려준다.

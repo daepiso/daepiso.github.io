@@ -1,11 +1,11 @@
 import { KAKAO_JS_KEY } from './config.js';
 import { CATEGORY_KEYS, RADIUS_STEPS_M, STORAGE_KEYS } from './constants.js';
-import { expandRadius } from './geo.js';
+import { expandRadius, haversineMeters } from './geo.js';
 import {
   fetchNearbyShelters, fetchNearbyCounts, cacheShelters, readCachedShelters,
 } from './shelters.js';
 import {
-  getCurrentPosition, watchPosition, searchAddress, reverseGeocode,
+  getFastPosition, getAccuratePosition, watchPosition, searchAddress, reverseGeocode,
   savePlace, readSavedPlace, forgetPlace,
 } from './location.js';
 import {
@@ -31,6 +31,10 @@ const state = {
   notice: null,
   placeLabel: null,
 };
+
+// 위치 자동 탐색마다 번호를 붙인다. 사용자가 동네를 직접 검색하면
+// 뒤늦게 도착한 GPS 결과가 그 선택을 덮어쓰지 못한다.
+let locationAttempt = 0;
 
 // ─────────────────────────────── 부팅
 
@@ -148,18 +152,29 @@ function loadKakao() {
 // ─────────────────────────────── 검색
 
 async function locateAndSearch() {
+  const attempt = ++locationAttempt;
   ui.setBusy(true, '내 위치를 찾는 중입니다…');
   // 위치 확인이 오래 걸리는 기기에서도 빈 화면만 보지 않도록
   // 동네 이름으로 찾는 방법을 처음부터 함께 열어둔다.
   ui.showFallback(true, false, true);
-  ui.renderPlace('내 위치를 찾는 중입니다…');
+  const saved = readSavedPlace();
+  if (saved) {
+    state.origin = { lat: saved.lat, lng: saved.lng };
+    state.placeLabel = saved.label;
+    ui.renderPlace(saved.label);
+    ui.showFallback(true, true);
+  } else {
+    ui.renderPlace('내 위치를 찾는 중입니다…');
+  }
 
   // 위치를 받는 데 몇 초가 걸린다. 그동안 빈 화면을 보여주면
   // 어르신은 앱이 멈춘 줄 안다. 지난번 목록을 먼저 띄워둔다.
   showCacheWhileWaiting();
+  if (saved) drawMap();
 
   try {
-    state.origin = await getCurrentPosition();
+    state.origin = await getFastPosition();
+    if (attempt !== locationAttempt) return;
     // 진짜 위치를 찾았으면 전에 넣어둔 동네는 더 이상 쓰지 않는다.
     forgetPlace();
     ui.showFallback(true, true);
@@ -171,22 +186,41 @@ async function locateAndSearch() {
     });
     await search();
   } catch (err) {
-    // GPS 를 못 써도, 전에 직접 넣어둔 동네가 있으면 그걸로 찾아준다.
-    const saved = readSavedPlace();
+    if (attempt !== locationAttempt) return;
+    // 빠른 위치를 못 잡아도 전에 넣어둔 동네가 있으면 곧바로 사용한다.
     if (saved) {
       state.origin = { lat: saved.lat, lng: saved.lng };
       state.placeLabel = saved.label;
       ui.renderPlace(saved.label);
       ui.showFallback(true, true);
       await search();
-      return;
+    } else {
+      ui.renderPlace(err.message === 'DENIED' ? '위치를 쓸 수 없습니다' : '위치를 찾지 못했습니다');
+      ui.showFallback(true);
+      showCacheIfAny();
     }
-    ui.renderPlace(err.message === 'DENIED' ? '위치를 쓸 수 없습니다' : '위치를 찾지 못했습니다');
-    ui.showFallback(true);
-    showCacheIfAny();
   } finally {
     ui.setBusy(false);
   }
+
+  // 정밀 GPS는 첫 화면을 막지 않는다. 나중에 더 정확한 좌표가 오면
+  // 충분히 차이가 날 때만 목록과 지도를 조용히 보정한다.
+  refinePositionInBackground(attempt);
+}
+
+async function refinePositionInBackground(attempt) {
+  try {
+    const accurate = await getAccuratePosition();
+    if (attempt !== locationAttempt) return;
+    const moved = state.origin ? haversineMeters(state.origin, accurate) : Infinity;
+    state.origin = accurate;
+    forgetPlace();
+    if (moved >= 100 || state.shelters.length === 0) await search();
+    state.placeLabel = null;
+    ui.renderPlace('현재 위치');
+    refreshPlaceLabel();
+    drawMap();
+  } catch { /* 정밀 위치는 보조 기능이므로 실패해도 현재 화면을 유지한다. */ }
 }
 
 async function search() {
@@ -452,6 +486,8 @@ async function onAddressSearch() {
   }
   ui.showAddressError(null);
   try {
+    // 사용자의 직접 선택이므로 진행 중인 자동 GPS 보정을 무효화한다.
+    locationAttempt += 1;
     const place = await searchAddress(query);
     state.origin = { lat: place.lat, lng: place.lng };
     savePlace(place);
