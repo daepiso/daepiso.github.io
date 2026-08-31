@@ -36,6 +36,52 @@ test('normalizeRow: 수용인원의 천단위 쉼표를 처리한다', () => {
   assert.equal(row.capacity, 1200);
 });
 
+// safetydata.go.kr 오픈API 의 실제 응답에서 가져온 값이다.
+const 지진행 = {
+  ARCD: '2623000000',
+  ACMDFCLTY_SN: '48',
+  VT_ACMDFCLTY_NM: '  선암초등학교  운동장 ',
+  RN_DTL_ADRES: '부산광역시 부산진구 엄광로 412(범천동)',
+  EQK_ACMDFCLTY_ADRES: '부산광역시 부산진구 범천동 1223-27',
+  LA: '35.14909702772257',
+  LO: '129.04951053256778',
+  VT_ACMD_PSBL_NMPR: '2513',
+  TELNO: '051-642-4208',
+};
+
+test('normalizeRow: 지진 원본을 공통 스키마로 바꾼다', () => {
+  const row = normalizeRow('earthquake', 지진행);
+  assert.equal(row.ext_id, '2623000000-48');
+  assert.equal(row.category, 'earthquake');
+  assert.equal(row.name, '선암초등학교 운동장');
+  assert.equal(row.address, '부산광역시 부산진구 엄광로 412(범천동)');
+  assert.equal(row.lat, 35.14909702772257);
+  assert.equal(row.lng, 129.04951053256778);
+  assert.equal(row.capacity, 2513);
+  assert.equal(row.tel, '051-642-4208');
+});
+
+// 시설번호는 지역코드 안에서만 고유하다. 48번이 부산에도 전남에도 있다.
+// 지역코드를 안 붙이면 11,174건이 452건으로 줄어든다.
+test('지역이 다르면 시설번호가 같아도 다른 곳으로 본다', () => {
+  const 부산 = normalizeRow('earthquake', 지진행);
+  const 전남 = normalizeRow('earthquake', { ...지진행, ARCD: '5221000000' });
+  assert.notEqual(부산.ext_id, 전남.ext_id);
+  assert.equal(dedupe([부산, 전남]).length, 2);
+});
+
+test('normalizeRow: 지진은 도로명주소가 비면 지번주소를 쓴다', () => {
+  const row = normalizeRow('earthquake', { ...지진행, RN_DTL_ADRES: '' });
+  assert.equal(row.address, '부산광역시 부산진구 범천동 1223-27');
+});
+
+// 지진 데이터에는 운영상태 칸이 없다. 없다고 전부 걸러지면 안 된다.
+test('운영상태 칸이 없는 종류도 통과시킨다', () => {
+  const row = normalizeRow('earthquake', 지진행);
+  assert.equal(isOperating(row), true);
+  assert.equal(isValidRow(row), true);
+});
+
 test('normalizeRow: 모르는 종류는 던진다', () => {
   assert.throws(() => normalizeRow('unknown', 민방위행), /알 수 없는 종류/);
 });

@@ -15,6 +15,24 @@ export const FIELD_MAP = {
     detail: '시설위치(지상/지하)',
     status: '운영상태',
   },
+
+  // 아래는 safetydata.go.kr 오픈API 에서 온다. 영문 필드명을 쓴다.
+  // 이름은 눈으로 확인하고 적었다. 추측하지 않는다.
+  earthquake: {
+    // ACMDFCLTY_SN 은 지역코드(ARCD) 안에서만 고유하다.
+    // 48번이 부산에도 전남에도 제주에도 따로 있다. 이것만 쓰면
+    // 11,174건이 452건으로 줄어든다. 지역코드를 앞에 붙여야 한다.
+    extParts: ['ARCD', 'ACMDFCLTY_SN'],
+    name: 'VT_ACMDFCLTY_NM',
+    addr: 'RN_DTL_ADRES',
+    addrAlt: 'EQK_ACMDFCLTY_ADRES',
+    lat: 'LA',
+    lng: 'LO',
+    cap: 'VT_ACMD_PSBL_NMPR',
+    detail: null,
+    status: null,
+    tel: 'TELNO',
+  },
 };
 
 const oneLine = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
@@ -24,11 +42,17 @@ const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
+// 관리번호가 한 칸에 없는 데이터가 있다. 여러 칸을 이어 붙여 만든다.
+function extId(m, raw) {
+  if (m.extParts) return m.extParts.map((f) => oneLine(raw[f])).join('-');
+  return oneLine(raw[m.ext]);
+}
+
 export function normalizeRow(category, raw) {
   const m = FIELD_MAP[category];
   if (!m) throw new Error(`알 수 없는 종류: ${category}`);
   return {
-    ext_id: oneLine(raw[m.ext]),
+    ext_id: extId(m, raw),
     category,
     name: oneLine(raw[m.name]),
     address: oneLine(raw[m.addr]) || oneLine(raw[m.addrAlt]),
@@ -36,7 +60,7 @@ export function normalizeRow(category, raw) {
     lng: num(raw[m.lng]),
     capacity: m.cap ? num(raw[m.cap]) : null,
     detail: (m.detail ? oneLine(raw[m.detail]) : '') || null,
-    tel: oneLine(raw.전화번호 ?? raw.관리기관전화번호 ?? '') || null,
+    tel: oneLine((m.tel ? raw[m.tel] : null) ?? raw.전화번호 ?? raw.관리기관전화번호 ?? '') || null,
     status: m.status ? oneLine(raw[m.status]) : '',
   };
 }
