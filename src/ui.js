@@ -257,6 +257,12 @@ export function showAddressError(message) {
   el.hidden = !message;
 }
 
+// 지도가 늦게 준비되는 일이 흔하다. 한 번 숨기면 영영 숨겨지지 않도록
+// 다시 보이게 하는 짝을 둔다.
+export function showMap() {
+  $('map').classList.remove('map--hidden');
+}
+
 export function hideMap() {
   $('map').classList.add('map--hidden');
 }

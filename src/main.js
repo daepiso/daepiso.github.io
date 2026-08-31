@@ -336,9 +336,12 @@ function drawMap() {
   if (!state.origin) return;
   const el = document.getElementById('map');
   if (!isMapReady() && !initMap(el, state.origin)) {
+    // 아직 카카오가 준비되지 않았을 수 있다. 준비되면 다시 부른다.
     ui.hideMap();
     return;
   }
+  // 앞서 숨겼더라도 이제 그릴 수 있으니 다시 보여준다.
+  ui.showMap();
   renderMarkers(state.shelters, state.origin, onSelect);
 }
 
