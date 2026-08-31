@@ -21,8 +21,21 @@
   </div>
 
   <header class="header">
-    <h1 class="header__title">내 근처 대피소</h1>
-    <p id="place" class="header__place">내 위치를 찾는 중입니다…</p>
+    <div class="header__inner">
+      <h1 class="header__title">내 근처 대피소</h1>
+      <p id="place" class="header__place">내 위치를 찾는 중입니다…</p>
+    </div>
+    <!-- 도봉산 능선. 화강암 봉우리가 솟은 모습을 옮겼다.
+         왼쪽부터 선인봉, 만장봉, 자운봉을 떠올리며 그렸다. -->
+    <svg class="header__ridge" viewBox="0 0 375 60" preserveAspectRatio="none"
+         aria-hidden="true" focusable="false">
+      <path class="header__ridge-far"
+            d="M0 60 L0 42 L46 24 L78 34 L118 12 L156 30 L196 8 L232 26
+               L268 16 L306 32 L340 22 L375 34 L375 60 Z" />
+      <path class="header__ridge-near"
+            d="M0 60 L0 52 L34 44 L62 50 L92 32 L116 44 L146 26 L170 40
+               L200 20 L226 38 L258 30 L292 44 L322 36 L352 46 L375 42 L375 60 Z" />
+    </svg>
   </header>
 
   <div id="chips" class="chips" role="radiogroup" aria-label="대피소 종류 고르기"></div>
