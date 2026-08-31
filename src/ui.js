@@ -16,6 +16,16 @@ export function renderTextSize(label) {
 
 export function renderPlace(text) {
   $('place').textContent = text;
+
+  // 머리말에 실제 동네나 '현재 위치'가 표시됐다면 위치를 이미 아는 상태다.
+  // 비동기 위치 찾기와 주소 검색의 응답 순서가 엇갈려도 아래 안내가
+  // '위치를 알 수 없습니다'로 남지 않도록 같은 상태로 맞춘다.
+  const isStatus =
+    text.includes('찾는 중') ||
+    text.includes('찾지 못') ||
+    text.includes('쓸 수 없') ||
+    text.includes('위치를 찾는 중');
+  if (!isStatus) showFallback(true, true);
 }
 
 // 개수를 곁들이면 눌러보기 전에 결과가 있는지 알 수 있다.
@@ -31,11 +41,17 @@ export function chipCountText(count) {
 export function renderChips(selectedKey, onSelect, counts = null) {
   const nav = $('chips');
   nav.innerHTML = '';
+  const icons = {
+    civil_defense: '⌖',
+    earthquake: '≋',
+    heat_cold: '☀',
+    temp_housing: '⌂',
+  };
   for (const cat of CATEGORIES) {
     const on = cat.key === selectedKey;
 
     const btn = document.createElement('button');
-    btn.className = 'chip';
+    btn.className = `chip chip--${cat.key}`;
     btn.type = 'button';
     // 하나만 고르는 것이므로 라디오로 알린다.
     // 화면을 읽어주는 기능이 '선택됨'이라고 말해준다.
@@ -45,6 +61,12 @@ export function renderChips(selectedKey, onSelect, counts = null) {
 
     const line = document.createElement('span');
     line.className = 'chip__label';
+
+    const icon = document.createElement('span');
+    icon.className = 'chip__icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = icons[cat.key];
+    btn.appendChild(icon);
 
     if (on) {
       // 색만으로 켜짐/꺼짐을 나타내면 색약인 분이 구분하지 못한다.
@@ -207,14 +229,22 @@ function summaryRow(shelter, count, handlers, activeShelterId, isNearest = false
 // 다만 위치를 이미 아는데 '지금 계신 곳을 알 수 없습니다'가 떠 있으면
 // 머리말과 앞뒤가 맞지 않는다. 그래서 제목을 바꾸고, 설명과
 // '현재 위치 다시 찾기'는 필요할 때만 보여 첫 화면을 덜 차지한다.
-export function showFallback(show, hasLocation = false) {
+export function showFallback(show, hasLocation = false, isLocating = false) {
   $('fallback').hidden = !show;
   if (!show) return;
-  $('fallback-title').textContent = hasLocation
-    ? '다른 동네로 찾기'
-    : '지금 계신 곳을 알 수 없습니다';
+  $('fallback-title').textContent = isLocating
+    ? '기다리지 않고 동네로 찾기'
+    : hasLocation
+      ? '다른 동네로 찾기'
+      : '지금 계신 곳을 알 수 없습니다';
   $('fallback-help').hidden = hasLocation;
-  $('retry-location').hidden = hasLocation;
+  if (isLocating) {
+    $('fallback-help').hidden = false;
+    $('fallback-help').innerHTML = '위치를 찾는 동안에도 <b>동네 이름</b>으로 바로 찾을 수 있습니다.';
+  } else {
+    $('fallback-help').innerHTML = '동네 이름을 넣고 <b>찾기</b>를 눌러주세요.';
+  }
+  $('retry-location').hidden = hasLocation || isLocating;
 }
 
 export function isSpokenTextVisible() {

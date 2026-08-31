@@ -149,9 +149,9 @@ function loadKakao() {
 
 async function locateAndSearch() {
   ui.setBusy(true, '내 위치를 찾는 중입니다…');
-  // 찾는 동안에는 '동네 이름을 넣으라'는 칸을 보이지 않는다.
-  // 먼저 스스로 찾아본 뒤, 정말 안 될 때만 부탁한다.
-  ui.showFallback(false);
+  // 위치 확인이 오래 걸리는 기기에서도 빈 화면만 보지 않도록
+  // 동네 이름으로 찾는 방법을 처음부터 함께 열어둔다.
+  ui.showFallback(true, false, true);
   ui.renderPlace('내 위치를 찾는 중입니다…');
 
   // 위치를 받는 데 몇 초가 걸린다. 그동안 빈 화면을 보여주면

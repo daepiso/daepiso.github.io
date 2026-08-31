@@ -1,517 +1,133 @@
-/* 어르신 기준
-   - 본문 최소 18px, 대피소 이름 23px
-   - 터치 대상 최소 높이 56px
-   - 명암비 7:1 이상 (WCAG AAA)
-   - 한 화면에 주요 행동은 하나 */
-
 :root {
-  /* 어두운 화면을 쓰는 폰이 많다. 이 줄이 없으면 안드로이드가 제멋대로
-     색을 뒤집어 대비가 망가진다. 우리가 직접 두 벌을 정한다. */
-  color-scheme: light dark;
-
-  /* 관공서 서비스는 회색 바탕에 흰 카드를 얹어 깊이를 준다.
-     온통 흰 바탕에 검은 테두리를 두르면 투박해 보인다. */
-  --page: #eff2f6;
-  --bg: #ffffff;
-  --fg: #16181d;
-  --muted: #4a5260;
-  --line: #d5dae2;
-  --line-soft: #e6eaf0;
-  --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 4px 12px rgba(16, 24, 40, 0.05);
-  /* 안전디딤돌과 같은 계열의 파랑으로 맞춘다.
-     머리말과 버튼 색이 따로 놀면 만들다 만 것처럼 보인다. */
-  --primary: #12448f;
-  --primary-fg: #ffffff;
-  --accent-bg: #dfebf8;
-  --accent-fg: #0a3a6b;
-  --danger: #9a2222;
-  --count-none-bg: #f0f0f0;
-
-  /* 머리말은 안전디딤돌과 같은 진한 파랑으로 채운다.
-     어르신이 재난 앱 하면 떠올리는 색이라 낯설지 않다.
-     그 위에 도봉산 능선을 얹어 도봉구임을 드러낸다. */
-  --header-bg: #0f3d85;
-  --header-bg2: #12468d;
-  --header-fg: #ffffff;
-  --header-sub: #dfeafb;
-  --ridge-far: rgba(255, 255, 255, 0.16);
-  --ridge-near: rgba(255, 255, 255, 0.30);
-
-  --tap: 56px;
-
-  /* 글자 크기 배율. 어르신이 직접 키울 수 있다.
-     모든 글자 크기에 이 값을 곱하므로 여기 한 곳만 바꾸면 된다. */
-  --fs: 1;
+  color-scheme: light;
+  --page:#f5f7f6; --bg:#fff; --fg:#17211e; --muted:#66736e;
+  --line:#d7dfdb; --line-soft:#e8eeeb; --primary:#087f5b;
+  --primary-deep:#0b4535; --primary-fg:#fff; --accent-bg:#e6f4ef;
+  --accent-fg:#0a684d; --danger:#a82e2e; --count-none-bg:#eef2f0;
+  --header-bg:#0a3d31; --header-bg2:#145e4a; --header-fg:#fff;
+  --header-sub:#d7e8e1; --ridge-far:rgba(255,255,255,.08);
+  --ridge-near:rgba(255,255,255,.14); --shadow-sm:0 1px 2px rgba(21,41,34,.05);
+  --shadow:0 10px 35px rgba(22,49,40,.075); --shadow-lg:0 24px 70px rgba(11,39,30,.2);
+  --tap:56px; --fs:1;
 }
-
-body.text-l  { --fs: 1.15; }
-body.text-xl { --fs: 1.32; }
-
-/* 어두운 화면. 밝은 화면과 같은 기준(명암비 7:1)을 지킨다. */
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme:dark) {
   :root {
-    --page: #0c0e11;
-    --bg: #191c21;
-    --fg: #f2f4f7;
-    --muted: #c3cad6;
-    --line: #3a4048;
-    --line-soft: #2a2f36;
-    --shadow: none;
-    --primary: #6fb2f5;
-    --primary-fg: #06172b;
-    --accent-bg: #17304a;
-    --accent-fg: #b6d8f7;
-    --danger: #ff9b9b;
-    --count-none-bg: #26282c;
-
-    --header-bg: #0a2246;
-    --header-bg2: #10305e;
-    --header-fg: #f5f5f5;
-    --header-sub: #a9c4e6;
-    --ridge-far: rgba(255, 255, 255, 0.10);
-    --ridge-near: rgba(255, 255, 255, 0.20);
+    color-scheme:dark; --page:#111714; --bg:#1a211e; --fg:#f2f6f4; --muted:#b8c3be;
+    --line:#3a4540; --line-soft:#2d3732; --primary:#69c6a7; --primary-deep:#d9f2e9;
+    --primary-fg:#08251d; --accent-bg:#183a30; --accent-fg:#a9e4cf; --danger:#ff9d9d;
+    --count-none-bg:#252d29; --header-bg:#102e27; --header-bg2:#17463a;
+    --header-sub:#c8ddd5; --shadow-sm:none; --shadow:none; --shadow-lg:0 18px 50px rgba(0,0,0,.35);
   }
 }
-
-* { box-sizing: border-box; }
-
-/* hidden 속성이 항상 이긴다.
-   .consent 처럼 display 를 지정한 요소는 브라우저 기본 display:none 을
-   덮어써서 숨겨지지 않는다. 그러면 투명한 막이 화면을 계속 가려
-   아래 버튼이 눌리지 않는다. */
-[hidden] { display: none !important; }
-
+body.text-l{--fs:1.15} body.text-xl{--fs:1.32}
+*{box-sizing:border-box} [hidden]{display:none!important}
+html{background:var(--page)}
 body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  font-size: calc(18px * var(--fs));
-  line-height: 1.6;
-  color: var(--fg);
-  background: var(--page);
-  padding-bottom: calc(var(--tap) + 40px);
-  -webkit-text-size-adjust: 100%;
+  margin:0; min-height:100vh; padding-bottom:calc(92px + env(safe-area-inset-bottom));
+  font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:calc(18px * var(--fs)); line-height:1.55; letter-spacing:-.015em;
+  color:var(--fg); background:var(--page); -webkit-text-size-adjust:100%;
 }
-
-/* ── 머리말 */
-
+button,input{font:inherit}
 .header {
-  position: relative;
-  /* 위에서 아래로 아주 옅게 밝아진다. 평평한 색보다 깊이가 생긴다. */
-  background: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg2) 100%);
-  color: var(--header-fg);
-  overflow: hidden;
+  position:relative; overflow:hidden; color:var(--header-fg);
+  background:radial-gradient(circle at 82% 14%,rgba(244,185,95,.18),transparent 25%),
+    linear-gradient(145deg,var(--header-bg),var(--header-bg2));
 }
+.header::before{content:"";position:absolute;width:320px;height:320px;right:-100px;top:-210px;border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 0 48px rgba(255,255,255,.025)}
+.header__inner{position:relative;z-index:1;max-width:1040px;margin:auto;padding:26px 116px 32px 22px}
+.header__brand{display:flex;align-items:center;gap:13px}
+.header__mark{display:grid;place-items:center;flex:none;width:48px;height:48px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);border-radius:15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.header__mark svg{width:29px;height:29px;fill:rgba(255,255,255,.1);stroke:#ffd58c;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.header__eyebrow{margin:0 0 3px;color:#f7cf89;font-size:calc(12px * var(--fs));font-weight:800;letter-spacing:.1em}
+.header__title{margin:0;font-size:calc(28px * var(--fs));line-height:1.2;font-weight:800;letter-spacing:-.045em}
+.header__place{display:inline-flex;align-items:center;gap:6px;margin:13px 0 0 61px;padding:6px 11px;color:var(--header-sub);background:rgba(0,0,0,.1);border-radius:999px;font-size:calc(14px * var(--fs))}
+.header__place::before{content:"⌖";color:#f8d494;font-weight:800}
+.header__size{position:absolute;top:28px;right:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:68px;min-height:60px;padding:5px 9px;color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.28);border-radius:16px;backdrop-filter:blur(8px);cursor:pointer}
+.header__size-glyph{font-size:21px;font-weight:800;line-height:1}.header__size-label{font-size:12px}
+.header__ridge{display:block;width:100%;height:48px;margin-bottom:-1px}.header__ridge-far{fill:var(--ridge-far)}.header__ridge-near{fill:var(--ridge-near)}
+.content-shell{max-width:1040px;margin:0 auto}
+.filter-panel{margin:18px 16px 14px}
+.section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 4px 11px}
+.section-heading h2{margin:0;font-size:calc(20px * var(--fs));line-height:1.35;letter-spacing:-.04em}
+.section-heading span{flex:none;color:var(--muted);font-size:calc(13px * var(--fs))}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chip{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-height:calc(66px * var(--fs));padding:10px 14px;overflow:hidden;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:15px;box-shadow:var(--shadow-sm);font-size:calc(15px * var(--fs));font-weight:750;cursor:pointer;transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.chip:hover{border-color:color-mix(in srgb,var(--primary) 40%,var(--line));box-shadow:0 6px 18px rgba(23,60,47,.08)}
+.chip[aria-checked="true"]{color:var(--primary-deep);background:var(--accent-bg);border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+.chip[aria-checked="true"]::after{content:"";position:absolute;right:-14px;bottom:-18px;width:56px;height:56px;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,transparent)}
+.chip__label{display:flex;align-items:flex-start;gap:6px;text-align:left;overflow-wrap:anywhere}
+.chip__check{display:grid;place-items:center;flex:none;width:18px;height:18px;margin-top:1px;color:var(--primary-fg);background:var(--primary);border-radius:50%;font-size:11px}
+.chip__count{color:var(--muted);font-size:calc(13px * var(--fs));font-weight:500}
+.map-frame{position:relative;margin:0 16px 20px;overflow:hidden;background:var(--bg);border:1px solid var(--line-soft);border-radius:24px;box-shadow:var(--shadow)}
+.map-frame__label{position:absolute;z-index:2;top:12px;left:12px;display:flex;align-items:center;gap:7px;padding:8px 12px;color:var(--fg);background:color-mix(in srgb,var(--bg) 92%,transparent);border:1px solid var(--line-soft);border-radius:999px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px);font-size:calc(13px * var(--fs));font-weight:750}
+.map-frame__label span{color:var(--primary);font-size:9px}.map{height:238px;background:var(--count-none-bg)}.map--hidden{display:none}.map-frame:has(.map--hidden){display:none}
+.list{padding:0 16px 8px}
+.card{position:relative;margin-bottom:14px;padding:24px;overflow:hidden;background:linear-gradient(145deg,var(--bg) 0%,color-mix(in srgb,var(--accent-bg) 24%,var(--bg)) 100%);border:1px solid color-mix(in srgb,var(--primary) 18%,var(--line-soft));border-radius:24px;box-shadow:var(--shadow)}
+.card::after{content:"";position:absolute;top:0;left:0;width:86px;height:5px;background:var(--primary);border-radius:0 0 8px 0}
+.card__tag{display:inline-flex;align-items:center;margin:0 0 11px;padding:6px 11px;color:var(--accent-fg);background:var(--accent-bg);border-radius:999px;font-size:calc(14px * var(--fs));font-weight:800}
+.card__name{margin:0;font-size:calc(24px * var(--fs));font-weight:800;line-height:1.3;letter-spacing:-.045em}
+.card__meta{margin:9px 0 0;color:var(--fg);font-size:calc(18px * var(--fs));font-weight:750}.card__addr{margin:5px 0 0;color:var(--muted);font-size:calc(16px * var(--fs))}
+.card__count{display:inline-flex;margin:14px 0 0;padding:7px 12px;color:var(--accent-fg);background:var(--accent-bg);border-radius:10px;font-size:calc(15px * var(--fs));font-weight:750}
+.card__count--none{color:var(--muted);background:var(--count-none-bg);font-weight:500}.card .btn{width:100%;margin-top:17px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:calc(74px * var(--fs));margin-bottom:10px;padding:14px 16px;color:var(--fg);text-align:left;background:var(--bg);border:1px solid var(--line-soft);border-radius:17px;box-shadow:var(--shadow-sm);cursor:pointer}
+.row--nearest{border-color:color-mix(in srgb,var(--primary) 55%,var(--line))}.row__tag{align-self:flex-start;margin-bottom:4px;padding:3px 8px;color:var(--accent-fg);background:var(--accent-bg);border-radius:999px;font-size:calc(12px * var(--fs));font-weight:800}
+.row__text{display:flex;flex-direction:column;gap:3px;min-width:0}.row__name{color:var(--fg);font-size:calc(18px * var(--fs));font-weight:750}.row__meta{color:var(--muted);font-size:calc(15px * var(--fs))}.row__chevron{flex:none;color:var(--primary);font-size:calc(28px * var(--fs))}
+.btn{min-height:calc(var(--tap) * var(--fs));padding:0 20px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);font-size:calc(18px * var(--fs));font-weight:750;cursor:pointer;transition:transform .15s ease,filter .15s ease}
+.btn--primary{min-height:calc(60px * var(--fs));color:var(--primary-fg);background:var(--primary);border-color:var(--primary)}.btn--block{display:block;width:100%}.btn--wide{flex:1}
+.btn:active,.chip:active,.row:active{transform:scale(.985)}
+.footer{position:fixed;z-index:5;left:50%;bottom:0;display:flex;gap:9px;width:100%;max-width:1040px;padding:11px 16px calc(11px + env(safe-area-inset-bottom));transform:translateX(-50%);background:color-mix(in srgb,var(--bg) 94%,transparent);border:1px solid var(--line-soft);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -10px 35px rgba(19,48,39,.1);backdrop-filter:blur(16px)}
+.footer__button{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px;line-height:1.2}.footer__button span{font-size:.9em}.footer__button--primary{color:var(--primary-fg);background:var(--primary);border-color:var(--primary)}
+.footer__button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fallback{margin:0 16px 18px;padding:20px;background:var(--bg);border:1px solid var(--line-soft);border-radius:20px;box-shadow:var(--shadow)}
+.fallback__title{margin:0 0 5px;font-size:calc(20px * var(--fs))}.fallback__help{margin:0 0 14px;color:var(--muted);font-size:calc(16px * var(--fs))}.fallback__row{display:flex;gap:8px}.fallback__retry{width:100%;margin-top:10px}
+.fallback input{flex:1;min-width:0;min-height:var(--tap);padding:0 14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:13px;font-size:calc(17px * var(--fs))}
+.fallback input:focus{outline:3px solid color-mix(in srgb,var(--primary) 35%,transparent);border-color:var(--primary)}
+.loading{display:flex;align-items:center;justify-content:center;gap:11px;margin:0 0 12px;padding:20px;font-weight:700}.loading__spinner{flex:none;width:25px;height:25px;border:3px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}.notice{margin:0 0 12px;padding:18px 20px;color:var(--muted);text-align:center}.error{margin:9px 0 0;color:var(--danger);font-size:calc(16px * var(--fs));font-weight:700}
+.consent{position:fixed;z-index:10;inset:0;display:grid;place-items:center;padding:20px;background:rgba(9,26,21,.68);backdrop-filter:blur(6px)}
+.consent__box{width:min(100%,420px);padding:26px;background:var(--bg);border:1px solid var(--line-soft);border-radius:24px;box-shadow:var(--shadow-lg)}
+.consent__box::before{content:"⌖";display:grid;place-items:center;width:50px;height:50px;margin-bottom:16px;color:var(--primary-fg);background:var(--primary);border-radius:15px;font-size:27px;font-weight:800}
+.consent__box h1{margin:0 0 10px;font-size:calc(27px * var(--fs))}.consent__box p{margin:0 0 21px;color:var(--muted)}
+.spoken{display:block;margin:0 16px 14px;padding:18px 20px;color:var(--accent-fg);background:var(--accent-bg);border:1px solid color-mix(in srgb,var(--primary) 24%,transparent);border-radius:17px}
+.spoken__text{display:block;font-size:calc(20px * var(--fs));font-weight:750;line-height:1.5}.spoken__hint{display:block;margin-top:11px;font-size:calc(15px * var(--fs))}.spoken__open{display:block;width:100%;margin-top:10px;color:var(--accent-fg)}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 55%,white);outline-offset:3px}
+@media (min-width:720px){body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}.header__inner{padding-left:30px}.filter-panel,.map-frame,.fallback,.spoken{margin-left:28px;margin-right:28px}.list{padding-left:28px;padding-right:28px}.chips{grid-template-columns:repeat(4,1fr)}.map{height:300px}}
+@media (max-width:420px){.section-heading span{display:none}.header__place{margin-left:0}.header__mark{width:44px;height:44px}.header__inner{padding-left:18px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-.header__inner {
-  position: relative;
-  padding: 18px 20px 26px;
-  /* 글자 크기 버튼이 제목을 덮지 않도록 자리를 비워둔다 */
-  padding-right: 96px;
+/* 지도 중심의 공공 안전 앱 레이아웃 */
+:root {
+  --page:#f1f4f8; --primary:#1965ad; --primary-deep:#154c81;
+  --accent-bg:#e8f2fb; --accent-fg:#15568e;
+  --header-bg:#165b9b; --header-bg2:#2878b9;
 }
-
-/* 글자 크기 조절. 안전디딤돌의 [가] 버튼과 같은 자리에 둔다. */
-.header__size {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  min-width: 64px;
-  min-height: 56px;
-  padding: 4px 8px;
-  font-family: inherit;
-  color: var(--header-fg);
-  background: rgba(255, 255, 255, 0.14);
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.header__size-glyph { font-size: 20px; font-weight: 700; line-height: 1; }
-.header__size-label { font-size: 12px; line-height: 1.2; }
-
-.header__title {
-  margin: 0;
-  font-size: calc(27px * var(--fs));
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.header__place {
-  margin: 6px 0 0;
-  font-size: calc(17px * var(--fs));
-  color: var(--header-sub);
-}
-
-/* 도봉산 능선. 머리말 아래쪽에 겹쳐 그린다. */
-.header__ridge {
-  display: block;
-  width: 100%;
-  height: 58px;
-  margin-bottom: -1px;
-}
-
-.header__ridge-far { fill: var(--ridge-far); }
-.header__ridge-near { fill: var(--ridge-near); }
-
-/* ── 종류 필터 */
-
-/* 정식 이름을 그대로 쓰다 보니 길다. 옆으로 늘어놓으면 줄이 계속 늘어나
-   지도와 대피소 카드가 첫 화면에서 밀려난다.
-   두 칸씩 두 줄로 고정해 자리를 예측 가능하게 만든다.
-   덤으로 누를 곳이 넓어져 손가락으로 짚기 쉬워진다. */
-.chips {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 10px 16px;
-}
-
-.chip {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  min-height: calc(62px * var(--fs));
-  padding: 8px 14px;
-  font-size: calc(15px * var(--fs));
-  font-family: inherit;
-  font-weight: 700;
-  /* 글자를 키우면 '이재민임시주거시설'이 한 줄에 안 들어간다.
-     두 칸 배치를 지키면서 이름이 줄바꿈되게 둔다. */
-  overflow-wrap: anywhere;
-  /* 꺼진 칩도 또렷해야 한다. 흐릿하면 어르신은 글자를 못 읽는다. */
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-
-.chip[aria-checked="true"] {
-  background: var(--primary);
-  color: var(--primary-fg);
-  border-color: var(--primary);
-}
-
-.chip__label {
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  text-align: left;
-}
-
-/* 켜진 칩에만 체크. 색만으로 구분하면 색약인 분이 못 알아본다. */
-.chip__check {
-  font-size: calc(14px * var(--fs));
-  line-height: 1;
-}
-
-/* 눌러보기 전에 근처에 몇 곳이 있는지 알 수 있게 한다. */
-.chip__count {
-  font-size: calc(14px * var(--fs));
-  font-weight: 400;
-  opacity: 0.85;
-}
-
-/* ── 지도 */
-
-.map {
-  height: 220px;
-  background: var(--count-none-bg);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.map--hidden { display: none; }
-
-/* ── 목록 */
-
-.list { padding: 16px 20px 0; }
-
-.card {
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
-  border-left: 4px solid var(--primary);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  padding: 20px;
-  margin-bottom: 14px;
-}
-
-/* 작고 흐리게 뒀더니 눈에 들어오지 않는다는 지적을 받았다.
-   맨 위 카드가 왜 맨 위인지 알려주는 말이므로 또렷해야 한다. */
-.card__tag {
-  display: inline-block;
-  margin: 0 0 10px;
-  padding: 6px 14px;
-  font-size: calc(18px * var(--fs));
-  font-weight: 700;
-  color: var(--primary-fg);
-  background: var(--primary);
-  border-radius: 999px;
-}
-
-.card__name { margin: 0; font-size: calc(23px * var(--fs)); font-weight: 700; line-height: 1.35; }
-.card__meta { margin: 8px 0 0; font-size: calc(19px * var(--fs)); color: var(--fg); font-weight: 700; }
-.card__addr { margin: 4px 0 0; font-size: calc(17px * var(--fs)); color: var(--muted); }
-
-.card__count {
-  display: inline-block;
-  margin: 12px 0 0;
-  padding: 8px 16px;
-  font-size: calc(18px * var(--fs));
-  font-weight: 700;
-  color: var(--accent-fg);
-  background: var(--accent-bg);
-  border-radius: 10px;
-}
-
-/* 0명일 때는 조용한 색으로. 그래도 반드시 보인다. */
-.card__count--none {
-  color: var(--muted);
-  background: var(--count-none-bg);
-  font-weight: 400;
-}
-
-.card .btn { margin-top: 14px; }
-
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: var(--tap);
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  font-family: inherit;
-  text-align: left;
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-
-/* 가장 가까운 곳이 목록 아래로 내려가도 바로 알아볼 수 있게 한다. */
-.row--nearest { border-color: var(--primary); border-left-width: 4px; }
-
-.row__tag {
-  align-self: flex-start;
-  margin-bottom: 4px;
-  padding: 3px 10px;
-  font-size: calc(15px * var(--fs));
-  font-weight: 700;
-  color: var(--primary-fg);
-  background: var(--primary);
-  border-radius: 999px;
-}
-
-.row__text { display: flex; flex-direction: column; gap: 3px; }
-.row__name { font-size: calc(20px * var(--fs)); font-weight: 700; color: var(--fg); }
-.row__meta { font-size: calc(17px * var(--fs)); color: var(--muted); }
-.row__chevron { font-size: calc(26px * var(--fs)); color: var(--muted); }
-
-/* ── 버튼 */
-
-.btn {
-  min-height: calc(var(--tap) * var(--fs));
-  padding: 0 20px;
-  font-size: calc(19px * var(--fs));
-  font-family: inherit;
-  font-weight: 700;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-
-.btn--primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-fg);
-  font-size: calc(21px * var(--fs));
-  min-height: calc(62px * var(--fs));
-}
-
-.btn--block { display: block; width: 100%; }
-.btn--wide { flex: 1; }
-.btn:active { transform: scale(0.99); }
-
-/* 글자를 아주 크게 하면 '소리로 듣기'가 두 줄로 잘려 보인다.
-   좌우 여백을 줄이고 줄 간격을 주어 두 줄이 되어도 읽히게 한다. */
-.footer .btn {
-  padding: 10px 8px;
-  line-height: 1.2;
-}
-
-.footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  gap: 10px;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
-  background: var(--bg);
-  border-top: 1px solid var(--line-soft);
-}
-
-/* ── 동네 이름으로 찾기 */
-
-/* 위치를 못 쓸 때 어르신이 다음에 뭘 해야 할지 한눈에 보여야 한다.
-   예전에는 이 칸이 목록 아래에 있어 스크롤해야 나왔다. */
-.fallback {
-  margin: 16px 20px 0;
-  padding: 20px;
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
-
-.fallback__title { margin: 0 0 6px; font-size: calc(21px * var(--fs)); font-weight: 700; }
-.fallback__help { margin: 0 0 14px; font-size: calc(18px * var(--fs)); color: var(--muted); }
-.fallback__row { display: flex; gap: 8px; }
-.fallback__retry { width: 100%; margin-top: 12px; }
-
-.fallback input {
-  flex: 1;
-  min-width: 0;
-  min-height: var(--tap);
-  padding: 0 14px;
-  font-size: calc(19px * var(--fs));
-  font-family: inherit;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.fallback input:focus { outline: 3px solid var(--primary); outline-offset: 1px; }
-
-/* ── 기다리는 동안 */
-
-/* 글자만 있으면 멈춘 줄 안다. 돌아가는 표시로 살아 있음을 보여준다. */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px;
-  margin: 0 0 12px;
-  font-size: calc(19px * var(--fs));
-  font-weight: 700;
-  color: var(--fg);
-}
-
-.loading__spinner {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border: 4px solid var(--line);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* 움직임을 불편해하는 분을 위해. 도는 대신 깜빡인다. */
-@media (prefers-reduced-motion: reduce) {
-  .loading__spinner {
-    animation: blink 1.4s ease-in-out infinite;
-    border-top-color: var(--line);
-    background: var(--primary);
-  }
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-}
-
-/* ── 안내 문구 */
-
-.notice {
-  padding: 18px 20px;
-  margin: 0 0 12px;
-  font-size: calc(19px * var(--fs));
-  color: var(--muted);
-  text-align: center;
-}
-
-.error { margin: 10px 0 0; font-size: calc(17px * var(--fs)); color: var(--danger); font-weight: 700; }
-
-/* ── 첫 진입 안내 */
-
-.consent {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.55);
-}
-
-.consent__box {
-  max-width: 420px;
-  padding: 24px;
-  background: var(--bg);
-  border-radius: 16px;
-}
-
-.consent__box h1 { margin: 0 0 12px; font-size: calc(26px * var(--fs)); }
-.consent__box p { margin: 0 0 20px; }
-
-.spoken {
-  display: block;
-  margin: 0 20px 12px;
-  padding: 18px 20px;
-  color: var(--accent-fg);
-  background: var(--accent-bg);
-  border-radius: 14px;
-}
-
-.spoken__text {
-  display: block;
-  font-size: calc(22px * var(--fs));
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.spoken__hint {
-  display: block;
-  margin-top: 12px;
-  font-size: calc(16px * var(--fs));
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.spoken__open {
-  display: block;
-  width: 100%;
-  margin-top: 10px;
-  color: var(--accent-fg);
-  border-color: var(--accent-fg);
-  background: var(--bg);
-}
-
-/* ── 접근성 */
-
-:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
-}
+.header{background:linear-gradient(110deg,var(--header-bg),var(--header-bg2));box-shadow:0 2px 12px rgba(17,68,114,.18)}
+.header::before{width:260px;height:260px;right:-70px;top:-190px;box-shadow:0 0 0 42px rgba(255,255,255,.025)}
+.header__inner{display:grid;grid-template-columns:1fr auto;align-items:center;padding-top:14px;padding-bottom:14px}
+.header__brand{gap:11px}.header__mark{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14)}
+.header__mark svg{width:26px;height:26px;stroke:#fff}.header__eyebrow{color:#ffdf67;font-size:calc(11px * var(--fs));margin-bottom:1px}
+.header__title{font-size:calc(23px * var(--fs))}.header__place{grid-column:1/-1;margin:10px 0 0;padding:8px 12px;background:rgba(8,47,82,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px}
+.header__size{top:17px;right:18px;min-width:60px;min-height:54px;border-radius:12px}.header__ridge{display:none}
+.content-shell{display:flex;flex-direction:column;padding-top:12px}
+.map-frame{order:1;margin-bottom:12px;border-radius:16px;border-color:#d7e0e9;box-shadow:0 5px 20px rgba(33,73,108,.1)}
+.map-frame__label{top:10px;left:10px;color:#174e7e;border-color:#dbe6ef;border-radius:8px}.map-frame__label span{color:#ef8c20}
+.map{height:clamp(330px,52vh,520px)}
+.filter-panel{order:2;margin-top:0;margin-bottom:14px;padding:15px 14px 13px;background:var(--bg);border:1px solid #dce4eb;border-radius:16px;box-shadow:0 5px 20px rgba(33,73,108,.07)}
+.section-heading{padding:0 2px 11px}.section-heading h2{font-size:calc(17px * var(--fs));color:#243849}.section-heading span{font-size:calc(12px * var(--fs))}
+.chips{grid-template-columns:repeat(4,1fr);gap:6px}
+.chip{align-items:center;min-height:calc(80px * var(--fs));padding:9px 5px 7px;text-align:center;background:transparent;border:0;border-radius:11px;box-shadow:none;font-size:calc(12px * var(--fs));font-weight:700}
+.chip:hover{border:0;background:#f1f6fa;box-shadow:none}.chip[aria-checked="true"]{color:var(--primary);background:var(--accent-bg);border:0;box-shadow:inset 0 0 0 1px #b7d5ec}
+.chip[aria-checked="true"]::after{display:none}.chip__icon{display:grid;place-items:center;width:34px;height:34px;color:#526777;background:#eef2f5;border:1px solid #d7e0e6;border-radius:11px;font-size:20px;line-height:1}
+.chip[aria-checked="true"] .chip__icon{color:#fff;background:var(--primary);border-color:var(--primary);box-shadow:0 4px 10px rgba(25,101,173,.22)}
+.chip__label{display:block;line-height:1.25;text-align:center}.chip__check{position:absolute;top:5px;right:5px;width:16px;height:16px;font-size:10px}.chip__count{font-size:calc(11px * var(--fs));line-height:1}
+.fallback{order:3}.loading{order:4}.spoken{order:5}.list{order:6}
+.card{border-color:#d9e4ed;border-radius:17px;background:#fff;box-shadow:0 6px 22px rgba(33,73,108,.08)}
+.card::after{background:var(--primary)}.card__tag{color:var(--accent-fg);background:var(--accent-bg)}
+.row{border-color:#dde5ec;border-radius:14px}.row__chevron{color:var(--primary)}
+.footer{max-width:1040px;border-color:#d2dce6;border-radius:17px 17px 0 0;box-shadow:0 -7px 25px rgba(22,67,106,.12)}
+.footer__button--primary{background:var(--primary);border-color:var(--primary)}
+.consent__box::before{background:var(--primary)}
+@media (prefers-color-scheme:dark){:root{--page:#101821;--primary:#68b6fa;--primary-deep:#d5ecff;--accent-bg:#18354d;--accent-fg:#add8fa;--header-bg:#123e67;--header-bg2:#185b91}.filter-panel,.card{background:var(--bg);border-color:var(--line)}.chip__icon{background:#26343e;border-color:#40515e;color:#c4d0d8}.map-frame{border-color:var(--line)}}
+@media (min-width:720px){.content-shell{padding-top:18px}.map-frame{margin-left:28px;margin-right:28px}.map{height:440px}.filter-panel{margin-left:28px;margin-right:28px}.header__inner{padding-top:16px;padding-bottom:16px}}
+@media (max-width:420px){.content-shell{padding-top:8px}.map-frame{margin-left:8px;margin-right:8px;border-radius:11px}.map{height:44vh;min-height:310px}.filter-panel{margin-left:8px;margin-right:8px;padding-left:7px;padding-right:7px}.chip{font-size:calc(11px * var(--fs));padding-left:2px;padding-right:2px}.header__place{margin-top:8px}.header__inner{padding-right:90px}}
