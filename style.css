@@ -97,7 +97,7 @@ body {
   cursor: pointer;
 }
 
-.chip[aria-pressed="true"] {
+.chip[aria-checked="true"] {
   background: var(--fg);
   color: var(--bg);
   border-color: var(--fg);

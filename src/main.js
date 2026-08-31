@@ -20,7 +20,7 @@ import * as ui from './ui.js';
 
 const state = {
   origin: null,
-  categories: loadCategories(),
+  category: loadCategory(),
   shelters: [],
   counts: new Map(),
   target: null,
@@ -185,7 +185,7 @@ async function search() {
         lat: state.origin.lat,
         lng: state.origin.lng,
         radiusM: radius,
-        categories: state.categories,
+        categories: [state.category],
       });
       if (found.length > 0) break;
       radius = expandRadius(radius);
@@ -262,7 +262,7 @@ function showCacheIfAny(reason) {
 }
 
 function drawChips() {
-  ui.renderChips(state.categories, onToggleCategory, state.categoryCounts);
+  ui.renderChips(state.category, onSelectCategory, state.categoryCounts);
 }
 
 function draw() {
@@ -309,13 +309,12 @@ function onCountsRefreshed(counts) {
   if (바뀐것) draw();
 }
 
-function onToggleCategory(key) {
-  const next = state.categories.includes(key)
-    ? state.categories.filter((k) => k !== key)
-    : [...state.categories, key];
-  // 전부 끄면 아무것도 못 보게 되므로 되돌린다.
-  state.categories = next.length > 0 ? next : [...CATEGORY_KEYS];
-  saveCategories();
+// 한 번에 한 종류만 본다. 이미 고른 것을 다시 눌러도 꺼지지 않는다.
+// 아무것도 안 켜진 상태를 만들면 어르신은 빈 화면 앞에서 막힌다.
+function onSelectCategory(key) {
+  if (state.category === key) return;
+  state.category = key;
+  saveCategory();
   drawChips();
   search();
 }
@@ -339,17 +338,21 @@ function onSelect(shelter) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function loadCategories() {
+// 예전에는 여러 개를 배열로 저장했다. 그 값도 자연스럽게 넘어가도록
+// 배열이면 첫 번째를 쓴다.
+function loadCategory() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) ?? 'null');
-    if (Array.isArray(saved) && saved.length > 0) return saved;
+    const key = Array.isArray(saved) ? saved[0] : saved;
+    if (CATEGORY_KEYS.includes(key)) return key;
   } catch { /* 무시 */ }
-  return [...CATEGORY_KEYS];
+  // '대피소'라고 하면 보통 민방위 대피시설을 뜻한다.
+  return 'civil_defense';
 }
 
-function saveCategories() {
+function saveCategory() {
   try {
-    localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(state.categories));
+    localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(state.category));
   } catch { /* 무시 */ }
 }
 

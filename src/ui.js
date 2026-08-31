@@ -16,17 +16,23 @@ export function chipCountText(count) {
   return count > 0 ? `${count}곳` : '없음';
 }
 
-export function renderChips(selected, onToggle, counts = null) {
+// 한 번에 한 종류만 고른다.
+// 여러 개를 겹쳐 켜면 목록에 뭐가 왜 나왔는지 알기 어렵고,
+// 지금 무엇을 보고 있는지도 헷갈린다.
+export function renderChips(selectedKey, onSelect, counts = null) {
   const nav = $('chips');
   nav.innerHTML = '';
   for (const cat of CATEGORIES) {
-    const on = selected.includes(cat.key);
+    const on = cat.key === selectedKey;
 
     const btn = document.createElement('button');
     btn.className = 'chip';
     btn.type = 'button';
+    // 하나만 고르는 것이므로 라디오로 알린다.
+    // 화면을 읽어주는 기능이 '선택됨'이라고 말해준다.
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', String(on));
     btn.setAttribute('aria-label', cat.aria);
-    btn.setAttribute('aria-pressed', String(on));
 
     const line = document.createElement('span');
     line.className = 'chip__label';
@@ -52,7 +58,7 @@ export function renderChips(selected, onToggle, counts = null) {
       btn.setAttribute('aria-label', `${cat.aria} ${text}`);
     }
 
-    btn.addEventListener('click', () => onToggle(cat.key));
+    btn.addEventListener('click', () => onSelect(cat.key));
     nav.appendChild(btn);
   }
 }
