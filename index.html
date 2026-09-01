@@ -82,6 +82,17 @@
 
   <p id="spoken" class="spoken" role="status" hidden></p>
 
+    <div class="list-head">
+      <span id="total" class="list-head__total"></span>
+      <label class="list-head__sort">
+        <span class="sr-only">목록 순서</span>
+        <select id="sort">
+          <option value="distance">거리순</option>
+          <option value="favorite">즐겨찾기순</option>
+        </select>
+      </label>
+    </div>
+
     <main id="list" class="list" aria-live="polite" aria-busy="false"></main>
   </div>
 

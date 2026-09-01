@@ -17,6 +17,8 @@ import { openSmsApp } from './share.js';
 import { openExternally } from './external.js';
 import { initMap, renderMarkers, isMapReady, relayout } from './map.js';
 import { readSize, saveSize, applySize, nextSize, sizeLabel } from './textsize.js';
+import { readFavorites, toggleFavorite } from './favorites.js';
+import { sortShelters } from './sorting.js';
 import * as ui from './ui.js';
 
 const state = {
@@ -30,6 +32,9 @@ const state = {
   stopWatch: null,
   notice: null,
   placeLabel: null,
+  sort: loadSort(),
+  openId: null,
+  favorites: readFavorites(),
 };
 
 // 위치 자동 탐색마다 번호를 붙인다. 사용자가 동네를 직접 검색하면
@@ -245,6 +250,8 @@ async function search() {
     state.shelters = found;
     // 목록은 가까운 순으로 온다. 어느 것이 가장 가까운지 여기서 정해둔다.
     state.nearestId = found[0]?.id ?? null;
+    // 종류를 바꿨는데 없어진 대피소가 펼쳐진 채로 남으면 안 된다.
+    state.openId = found[0]?.id ?? null;
     state.counts = new Map();
     cacheShelters(found, state.origin);
 
@@ -270,6 +277,9 @@ async function search() {
         if (counts.size === 0) return;
         state.categoryCounts = counts;
         drawChips();
+        // 반경 안 전체 개수가 이제야 왔다. 목록 머리말의 '총 N개'와
+        // '가까운 50곳만 보여드립니다' 가 이 값을 쓰므로 함께 다시 그린다.
+        draw();
       });
     watchCounts({
       getShelterIds: () => state.shelters.map((s) => s.id),
@@ -318,9 +328,30 @@ function drawChips() {
 
 function draw() {
   const mine = getActiveTrip()?.shelterId ?? null;
-  ui.renderList(
-    state.shelters, state.counts, { onGo, onSelect, onShare }, state.notice, mine, state.nearestId,
-  );
+  const ordered = sortShelters(state.shelters, {
+    sort: state.sort,
+    favorites: state.favorites,
+  });
+
+  // 아무 줄도 열려 있지 않으면 맨 위를 연다.
+  // 아무것도 누르지 않고 바로 길찾기를 누를 수 있어야 한다.
+  if (!ordered.some((s) => s.id === state.openId)) {
+    state.openId = ordered[0]?.id ?? null;
+  }
+
+  ui.renderListHead(totalNearby());
+  ui.renderSort(state.sort);
+  ui.renderList({
+    shelters: ordered,
+    counts: state.counts,
+    notice: state.notice,
+    openId: state.openId,
+    favorites: state.favorites,
+    activeShelterId: mine,
+    nearestId: state.nearestId,
+    total: totalNearby(),
+    handlers: { onGo, onShare, onToggleOpen, onToggleFavorite },
+  });
 
   // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
   // 목록이 바뀌면 같이 고쳐 쓴다.
@@ -330,6 +361,12 @@ function draw() {
       buildSpeechText(cur, cur ? state.counts.get(cur.id) ?? 0 : 0, isNearest(cur)),
     );
   }
+}
+
+// 반경 안에 몇 곳이 있는지. 종류 칩에 쓰는 값을 그대로 쓴다.
+// 아직 안 왔으면 지금 보여주는 개수로 대신한다.
+function totalNearby() {
+  return state.categoryCounts?.get(state.category) ?? state.shelters.length;
 }
 
 function drawMap() {
@@ -348,7 +385,7 @@ function drawMap() {
 
   // 숨어 있는 동안 칸의 크기가 달라졌을 수 있으니 다시 재게 한다.
   relayout();
-  renderMarkers(state.shelters, state.origin, onSelect);
+  renderMarkers(state.shelters, state.origin, onToggleOpen);
 }
 
 function onCountChange(shelterId, count) {
@@ -379,9 +416,10 @@ function onSelectCategory(key) {
   search();
 }
 
-// 소리로 듣기와 가족에게는 맨 위 카드, 곧 '지금 보고 있는 곳'을 가리킨다.
+// 소리로 듣기와 가족에게는 '지금 보고 있는 곳'을 가리킨다.
+// 곧 펼쳐져 있는 줄이고, 아무것도 안 펼쳐졌으면 맨 위 줄이다.
 function currentShelter() {
-  return state.shelters[0] ?? null;
+  return state.shelters.find((s) => s.id === state.openId) ?? state.shelters[0] ?? null;
 }
 
 // 목록을 다시 늘어놓아도 어느 것이 가장 가까운지는 바뀌지 않는다.
@@ -392,10 +430,23 @@ function isNearest(shelter) {
   return shelter.id === state.nearestId;
 }
 
-function onSelect(shelter) {
-  state.shelters = [shelter, ...state.shelters.filter((s) => s.id !== shelter.id)];
+// 목록 순서는 건드리지 않는다. 누른 줄이 제자리에서 펼쳐질 뿐이다.
+// 예전에는 누른 것을 맨 위로 끌어올려서, 화면이 통째로 뒤바뀌는 바람에
+// 방금 무엇을 눌렀는지 놓치기 쉬웠다.
+function onToggleOpen(shelter) {
+  state.openId = state.openId === shelter.id ? null : shelter.id;
   draw();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function onToggleFavorite(shelter) {
+  state.favorites = toggleFavorite(shelter.id);
+  draw();
+}
+
+function onChangeSort(value) {
+  state.sort = value;
+  saveSort();
+  draw();
 }
 
 // 예전에는 여러 개를 배열로 저장했다. 그 값도 자연스럽게 넘어가도록
@@ -408,6 +459,22 @@ function loadCategory() {
   } catch { /* 무시 */ }
   // '대피소'라고 하면 보통 민방위 대피시설을 뜻한다.
   return 'civil_defense';
+}
+
+const SORTS = ['distance', 'favorite'];
+
+function loadSort() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.sort);
+    if (SORTS.includes(saved)) return saved;
+  } catch { /* 무시 */ }
+  return 'distance';
+}
+
+function saveSort() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.sort, state.sort);
+  } catch { /* 무시 */ }
 }
 
 function saveCategory() {
@@ -483,6 +550,7 @@ function wireButtons() {
     locateAndSearch();
   });
 
+  on('sort', 'change', (e) => onChangeSort(e.target.value));
   on('addr-go', 'click', onAddressSearch);
   on('addr', 'keydown', (e) => {
     if (e.key === 'Enter') onAddressSearch();

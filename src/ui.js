@@ -107,9 +107,24 @@ export function peopleBadgeText(count, isMine) {
   return `${count}명 가는 중`;
 }
 
-export function renderList(
-  shelters, counts, handlers, notice, activeShelterId = null, nearestId = null,
-) {
+// 목록 머리말. 20초마다 인원 수가 갱신될 때 정렬 단추를 다시 만들면
+// 어르신이 열어둔 목록이 닫힐 수 있다. 그래서 숫자만 고쳐 쓴다.
+export function renderListHead(total) {
+  const el = $('total');
+  if (!el) return;
+  el.textContent = total > 0 ? `총 ${total.toLocaleString('ko-KR')}개` : '';
+  el.hidden = total <= 0;
+}
+
+export function renderSort(sort) {
+  const el = $('sort');
+  if (el) el.value = sort;
+}
+
+export function renderList({
+  shelters, counts, notice, openId, favorites,
+  activeShelterId = null, nearestId = null, total = 0, handlers,
+}) {
   const list = $('list');
   list.innerHTML = '';
 
@@ -130,110 +145,119 @@ export function renderList(
     return;
   }
 
-  // 맨 위 카드는 '지금 보고 있는 곳'이다.
-  // 고른 것이 없으면 가장 가까운 곳이 그대로 맨 위에 온다.
-  const top = shelters[0];
-  const topIsNearest = nearestId === null || top.id === nearestId;
+  for (const s of shelters) {
+    list.appendChild(shelterRow(s, {
+      count: counts.get(s.id) ?? 0,
+      isOpen: s.id === openId,
+      isFavorite: favorites.has(s.id),
+      isNearest: s.id === nearestId,
+      isMine: s.id === activeShelterId,
+    }, handlers));
+  }
 
-  list.appendChild(
-    topCard(top, counts.get(top.id) ?? 0, handlers, activeShelterId, topIsNearest),
-  );
-
-  // 가장 가까운 곳이 아래로 내려가더라도 목록 안에서 바로 알아볼 수 있게
-  // 이름 위에 딱지를 붙인다.
-  for (const s of shelters.slice(1, 10)) {
-    list.appendChild(
-      summaryRow(s, counts.get(s.id) ?? 0, handlers, activeShelterId, s.id === nearestId),
-    );
+  // 반경 안에 있는 것보다 적게 보여주고 있으면 그 까닭을 밝힌다.
+  // 총 개수와 목록 길이가 다른 이유를 화면 안에서 알 수 있어야 한다.
+  if (total > shelters.length) {
+    const p = document.createElement('p');
+    p.className = 'list__more';
+    p.textContent = `가까운 ${shelters.length}곳만 보여드립니다.`;
+    list.appendChild(p);
   }
 }
 
-function topCard(shelter, count, handlers, activeShelterId, isNearest) {
-  const card = document.createElement('section');
-  card.className = isNearest ? 'card' : 'card card--selected';
-  card.id = isNearest ? 'card-nearest' : 'card-selected';
+function shelterRow(shelter, 상태, handlers) {
+  const row = document.createElement('div');
+  row.className = 상태.isOpen ? 'row row--open' : 'row';
 
-  const tag = document.createElement('p');
-  tag.className = 'card__tag';
-  tag.textContent = isNearest ? '가장 가까운 곳' : '선택하신 곳';
-  card.appendChild(tag);
+  const head = document.createElement('div');
+  head.className = 'row__head';
 
-  const name = document.createElement('h2');
-  name.className = 'card__name';
-  name.textContent = shelter.name;
-  card.appendChild(name);
+  // 줄 누르기와 별표 누르기는 서로 다른 일이다. 단추 안에 단추를 넣을 수
+  // 없으므로 나란한 두 단추로 만든다. 그래야 별표에도 넉넉한 누름 범위를
+  // 줄 수 있다.
+  const main = document.createElement('button');
+  main.className = 'row__main';
+  main.type = 'button';
+  main.setAttribute('aria-expanded', String(상태.isOpen));
 
-  const meta = document.createElement('p');
-  meta.className = 'card__meta';
-  meta.textContent = `${formatDistance(shelter.distance_m)} · 걸어서 ${walkMinutes(shelter.distance_m)}분`;
-  card.appendChild(meta);
-
-  const addr = document.createElement('p');
-  addr.className = 'card__addr';
-  addr.textContent = shelter.address;
-  card.appendChild(addr);
-
-  const badge = document.createElement('p');
-  badge.className = count > 0 ? 'card__count' : 'card__count card__count--none';
-  badge.textContent = peopleBadgeText(count, shelter.id === activeShelterId);
-  card.appendChild(badge);
-
-  const go = document.createElement('button');
-  go.className = 'btn btn--primary btn--block';
-  go.type = 'button';
-  go.textContent = '길찾기';
-  go.addEventListener('click', () => handlers.onGo(shelter));
-  card.appendChild(go);
-
-  // 가족에게 알리는 것은 '이 대피소로 간다'는 뜻이다.
-  // 화면 아래 띠에 떠 있으면 어느 곳을 알리는지 알 수 없고,
-  // 종류 고르는 단추들과 나란히 놓여 헷갈린다. 그래서 카드 안에 둔다.
-  const share = document.createElement('button');
-  share.className = 'btn btn--block card__share';
-  share.type = 'button';
-  share.textContent = '가족에게 알리기';
-  share.addEventListener('click', () => handlers.onShare(shelter));
-  card.appendChild(share);
-
-  return card;
-}
-
-function summaryRow(shelter, count, handlers, activeShelterId, isNearest = false) {
-  const row = document.createElement('button');
-  row.className = isNearest ? 'row row--nearest' : 'row';
-  row.type = 'button';
-
-  const left = document.createElement('span');
-  left.className = 'row__text';
-
-  if (isNearest) {
-    const tag = document.createElement('span');
-    tag.className = 'row__tag';
-    tag.textContent = '가장 가까운 곳';
-    left.appendChild(tag);
-  }
+  const line = document.createElement('span');
+  line.className = 'row__line';
 
   const name = document.createElement('span');
   name.className = 'row__name';
   name.textContent = shelter.name;
 
-  const meta = document.createElement('span');
-  meta.className = 'row__meta';
-  meta.textContent =
-    `${formatDistance(shelter.distance_m)} · 걸어서 ${walkMinutes(shelter.distance_m)}분` +
-    (count > 0 ? ` · ${count}명 가는 중` : '') +
-    (shelter.id === activeShelterId ? ' · 내가 가는 중' : '');
+  // 거리만 있으면 어르신은 그게 얼마나 먼지 가늠하기 어렵다.
+  // 지금 목록에도 '걸어서 N분'이 있었다. 그대로 남긴다.
+  const dist = document.createElement('span');
+  dist.className = 'row__dist';
+  dist.textContent =
+    `${formatDistance(shelter.distance_m)} · 걸어서 ${walkMinutes(shelter.distance_m)}분`;
 
-  left.append(name, meta);
+  line.append(name, dist);
 
-  const chevron = document.createElement('span');
-  chevron.className = 'row__chevron';
-  chevron.setAttribute('aria-hidden', 'true');
-  chevron.textContent = '›';
+  const addr = document.createElement('span');
+  addr.className = 'row__addr';
+  addr.textContent = shelter.address;
 
-  row.append(left, chevron);
-  row.addEventListener('click', () => handlers.onSelect(shelter));
+  const tags = document.createElement('span');
+  tags.className = 'row__tags';
+
+  const people = document.createElement('span');
+  people.className = 상태.count > 0 ? 'tag tag--people' : 'tag tag--quiet';
+  people.textContent = peopleBadgeText(상태.count, 상태.isMine);
+  tags.appendChild(people);
+
+  // 즐겨찾기순으로 보면 가장 가까운 곳이 아래로 내려간다.
+  // 그때도 어느 것이 제일 가까운지 알 수 있어야 한다.
+  if (상태.isNearest) {
+    const near = document.createElement('span');
+    near.className = 'tag tag--near';
+    near.textContent = '가장 가까운 곳';
+    tags.appendChild(near);
+  }
+
+  main.append(line, addr, tags);
+  main.addEventListener('click', () => handlers.onToggleOpen(shelter));
+
+  const star = document.createElement('button');
+  star.className = 상태.isFavorite ? 'row__star row__star--on' : 'row__star';
+  star.type = 'button';
+  star.setAttribute('aria-pressed', String(상태.isFavorite));
+  star.setAttribute(
+    'aria-label',
+    `${shelter.name} ${상태.isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}`,
+  );
+  star.textContent = 상태.isFavorite ? '★' : '☆';
+  star.addEventListener('click', () => handlers.onToggleFavorite(shelter));
+
+  head.append(main, star);
+  row.appendChild(head);
+
+  if (상태.isOpen) row.appendChild(rowActions(shelter, handlers));
   return row;
+}
+
+function rowActions(shelter, handlers) {
+  const box = document.createElement('div');
+  box.className = 'row__actions';
+
+  const go = document.createElement('button');
+  go.className = 'btn btn--primary';
+  go.type = 'button';
+  go.textContent = '길찾기';
+  go.addEventListener('click', () => handlers.onGo(shelter));
+
+  // 가족에게 알리는 것은 '이 대피소로 간다'는 뜻이다.
+  // 길찾기가 주된 일이므로 그보다 약하게 보여야 한다.
+  const share = document.createElement('button');
+  share.className = 'btn card__share';
+  share.type = 'button';
+  share.textContent = '가족에게 알리기';
+  share.addEventListener('click', () => handlers.onShare(shelter));
+
+  box.append(go, share);
+  return box;
 }
 
 // 이 칸은 늘 쓸 수 있어야 한다. 숨겨두면 위치가 잘 잡히는 폰에서는
