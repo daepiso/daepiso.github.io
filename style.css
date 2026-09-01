@@ -165,8 +165,8 @@ button,input{font:inherit}
 /* 더벤티 픽업 매장 화면을 본뜬 목록. 모든 줄이 같은 모양이다. */
 
 .list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 16px 10px}
-.list-head__total{color:var(--primary);font-size:calc(15px * var(--fs));font-weight:750}
-.list-head__sort select{min-height:calc(44px * var(--fs));padding:0 12px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;font-size:calc(15px * var(--fs));font-weight:700}
+.list-head__total{color:var(--primary-deep);font-size:calc(15px * var(--fs));font-weight:750}
+.list-head__sort select{min-height:calc(var(--tap) * var(--fs));padding:0 12px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;font-size:calc(15px * var(--fs));font-weight:700}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 .row{display:block;margin-bottom:8px;background:var(--bg);border:1px solid var(--line-soft);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden}
@@ -175,17 +175,17 @@ button,input{font:inherit}
 .row__main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:14px 6px 14px 16px;color:var(--fg);text-align:left;background:transparent;border:0;cursor:pointer}
 .row__line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .row__name{color:var(--fg);font-size:calc(20px * var(--fs));font-weight:750;line-height:1.3}
-.row__dist{flex:none;color:var(--primary);font-size:calc(16px * var(--fs));font-weight:750}
+.row__dist{flex:none;color:var(--primary-deep);font-size:calc(16px * var(--fs));font-weight:750}
 .row__addr{display:block;overflow:hidden;color:var(--muted);font-size:calc(15px * var(--fs));text-overflow:ellipsis;white-space:nowrap}
 .row__tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
 .tag{padding:4px 10px;border-radius:999px;font-size:calc(13px * var(--fs));font-weight:700}
 .tag--people{color:var(--accent-fg);background:var(--accent-bg)}
 .tag--quiet{color:var(--muted);background:var(--count-none-bg);font-weight:500}
-.tag--near{color:var(--primary-fg);background:var(--primary)}
+.tag--near{color:var(--bg);background:var(--primary-deep)}
 
 /* 별 그림은 작아도 누르는 범위는 넉넉해야 한다.
    옆의 줄을 잘못 누르면 엉뚱한 곳이 펼쳐진다. */
-.row__star{flex:none;width:calc(58px * var(--fs));min-height:calc(58px * var(--fs));align-self:center;color:var(--line);background:transparent;border:0;font-size:calc(26px * var(--fs));line-height:1;cursor:pointer}
+.row__star{flex:none;width:calc(58px * var(--fs));min-height:calc(58px * var(--fs));align-self:center;color:var(--muted);background:transparent;border:0;font-size:calc(26px * var(--fs));line-height:1;cursor:pointer}
 .row__star--on{color:#f0a500}
 
 .row__actions{display:flex;gap:8px;padding:0 16px 14px}
@@ -195,11 +195,21 @@ button,input{font:inherit}
 
 /* 검색칸을 지도 위에 얹는다. 화면이 짧아져 대피소 목록이 더 빨리 보인다. */
 .map-search{position:absolute;z-index:2;top:10px;left:10px;right:10px;display:flex;gap:7px;padding:7px;background:color-mix(in srgb,var(--bg) 94%,transparent);border:1px solid var(--line-soft);border-radius:14px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
-.map-search input{flex:1;min-width:0;min-height:calc(46px * var(--fs));padding:0 12px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:calc(16px * var(--fs))}
+.map-search input{flex:1;min-width:0;min-height:calc(var(--tap) * var(--fs));padding:0 12px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:calc(16px * var(--fs))}
 .map-search input:focus{outline:3px solid color-mix(in srgb,var(--primary) 35%,transparent);border-color:var(--primary)}
-.map-search .btn{flex:none;min-height:calc(46px * var(--fs));padding:0 16px}
+.map-search .btn{flex:none;min-height:calc(var(--tap) * var(--fs));padding:0 16px}
 
 /* 카카오가 안 뜨면 지도 그림만 사라진다. 그때도 동네 검색은 되어야 하므로
    검색칸은 자리를 지키고 떠 있는 모양만 푼다. */
 .map-frame:has(.map--hidden){background:transparent;border:0;box-shadow:none}
 .map-frame:has(.map--hidden) .map-search{position:static;background:transparent;border:0;box-shadow:none;padding:0}
+
+
+/* 앱 전체의 흐린 글씨(--muted)는 대비가 5:1 안팎이다. 목록은 어르신이
+   가장 오래 들여다보는 곳이므로 여기서만 한 단계 진한 회색을 쓴다.
+   전체 색을 바꾸면 앱 생김새가 통째로 달라지므로 건드리지 않는다. */
+:root{--muted-strong:#414d56}
+@media (prefers-color-scheme:dark){:root{--muted-strong:#c3cfd8}}
+.row__addr{color:var(--muted-strong)}
+.tag--quiet{color:var(--muted-strong)}
+.list__more{color:var(--muted-strong)}
