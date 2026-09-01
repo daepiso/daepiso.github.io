@@ -260,28 +260,21 @@ function rowActions(shelter, handlers) {
   return box;
 }
 
-// 이 칸은 늘 쓸 수 있어야 한다. 숨겨두면 위치가 잘 잡히는 폰에서는
-// 다른 동네의 대피소를 찾아볼 방법이 아예 없다.
+// 검색칸은 지도 위에 늘 떠 있다. 이 칸은 위치를 못 잡았을 때
+// 무슨 일이 벌어졌는지 알려주는 자리다.
 //
-// 다만 위치를 이미 아는데 '지금 계신 곳을 알 수 없습니다'가 떠 있으면
-// 머리말과 앞뒤가 맞지 않는다. 그래서 제목을 바꾸고, 설명과
-// '현재 위치 다시 찾기'는 필요할 때만 보여 첫 화면을 덜 차지한다.
+// 위치를 이미 아는데 '알 수 없습니다'가 떠 있으면 머리말과 앞뒤가 맞지 않는다.
 export function showFallback(show, hasLocation = false, isLocating = false) {
-  $('fallback').hidden = !show;
-  if (!show) return;
+  $('fallback').hidden = !show || hasLocation;
+  if ($('fallback').hidden) return;
+
   $('fallback-title').textContent = isLocating
-    ? '기다리지 않고 동네로 찾기'
-    : hasLocation
-      ? '다른 동네로 찾기'
-      : '지금 계신 곳을 알 수 없습니다';
-  $('fallback-help').hidden = hasLocation;
-  if (isLocating) {
-    $('fallback-help').hidden = false;
-    $('fallback-help').innerHTML = '위치를 찾는 동안에도 <b>동네 이름</b>으로 바로 찾을 수 있습니다.';
-  } else {
-    $('fallback-help').innerHTML = '동네 이름을 넣고 <b>찾기</b>를 눌러주세요.';
-  }
-  $('retry-location').hidden = hasLocation || isLocating;
+    ? '위치를 찾고 있습니다'
+    : '지금 계신 곳을 알 수 없습니다';
+  $('fallback-help').innerHTML = isLocating
+    ? '기다리지 않으려면 위 칸에 <b>동네 이름</b>을 넣어주세요.'
+    : '위 칸에 동네 이름을 넣고 <b>찾기</b>를 눌러주세요.';
+  $('retry-location').hidden = isLocating;
 }
 
 export function isSpokenTextVisible() {

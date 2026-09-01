@@ -60,17 +60,17 @@
     </section>
 
     <div class="map-frame">
-      <div class="map-frame__label"><span aria-hidden="true">●</span> 내 주변 지도</div>
+      <div class="map-search">
+        <label class="sr-only" for="addr">동네 이름으로 찾기</label>
+        <input id="addr" type="text" inputmode="search" placeholder="동네 이름 (예: 강남구 도곡동)" />
+        <button id="addr-go" class="btn btn--primary" type="button">찾기</button>
+      </div>
       <div id="map" class="map" role="img" aria-label="주변 대피소 지도"></div>
     </div>
 
     <section id="fallback" class="fallback" hidden>
     <h2 id="fallback-title" class="fallback__title">지금 계신 곳을 알 수 없습니다</h2>
-    <p id="fallback-help" class="fallback__help">동네 이름을 넣고 <b>찾기</b>를 눌러주세요.</p>
-    <div class="fallback__row">
-      <input id="addr" type="text" inputmode="search" placeholder="예: 강남구 도곡동" />
-      <button id="addr-go" class="btn btn--primary" type="button">찾기</button>
-    </div>
+    <p id="fallback-help" class="fallback__help">위 칸에 동네 이름을 넣고 <b>찾기</b>를 눌러주세요.</p>
     <p id="addr-error" class="error" hidden></p>
     <button id="retry-location" class="btn fallback__retry" type="button">현재 위치 다시 찾기</button>
     </section>
