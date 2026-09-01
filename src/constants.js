@@ -38,4 +38,6 @@ export const STORAGE_KEYS = {
   activeTrip: 'shelter.activeTrip',
   savedPlace: 'shelter.place',
   textSize: 'shelter.textSize',
+  favorites: 'shelter.favorites',
+  sort: 'shelter.sort',
 };
