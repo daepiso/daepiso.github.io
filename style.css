@@ -109,10 +109,10 @@ button,input{font:inherit}
 .header__title{font-size:calc(23px * var(--fs))}.header__place{grid-column:1/-1;margin:10px 0 0;padding:8px 12px;background:rgba(8,47,82,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px}
 .header__size{top:17px;right:18px;min-width:60px;min-height:54px;border-radius:12px}.header__ridge{display:none}
 .content-shell{display:flex;flex-direction:column;padding-top:12px}
-.map-frame{order:1;margin-bottom:12px;border-radius:16px;border-color:#d7e0e9;box-shadow:0 5px 20px rgba(33,73,108,.1)}
+.map-frame{order:2;margin-bottom:12px;border-radius:16px;border-color:#d7e0e9;box-shadow:0 5px 20px rgba(33,73,108,.1)}
 
 .map{height:clamp(330px,52vh,520px)}
-.filter-panel{order:2;margin-top:0;margin-bottom:14px;padding:15px 14px 13px;background:var(--bg);border:1px solid #dce4eb;border-radius:16px;box-shadow:0 5px 20px rgba(33,73,108,.07)}
+.filter-panel{order:1;margin-top:0;margin-bottom:14px;padding:15px 14px 13px;background:var(--bg);border:1px solid #dce4eb;border-radius:16px;box-shadow:0 5px 20px rgba(33,73,108,.07)}
 .section-heading{padding:0 2px 11px}.section-heading h2{font-size:calc(17px * var(--fs));color:#243849}.section-heading span{font-size:calc(12px * var(--fs))}
 .chips{grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{align-items:center;min-height:calc(80px * var(--fs));padding:9px 5px 7px;text-align:center;background:transparent;border:0;border-radius:11px;box-shadow:none;font-size:calc(12px * var(--fs));font-weight:700}
