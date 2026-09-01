@@ -97,11 +97,14 @@ export function renderChips(selectedKey, onSelect, counts = null) {
 // 인원 문구는 0명일 때도 반드시 보여준다.
 // 0명이면 숨겼더니 회성 님이 "이 기능이 안 된다"고 하셨다.
 // 요청받은 기능이 평소에 안 보이면 없는 것이나 마찬가지다.
-export function peopleText(count, isMine) {
-  if (count <= 0) return '지금 이곳으로 가는 사람은 없습니다';
-  if (isMine && count === 1) return '지금 1명이 가는 중 (나)';
-  if (isMine) return `지금 ${count}명이 가는 중 (나 포함)`;
-  return `지금 ${count}명이 가는 중`;
+//
+// 배지 칸에 들어가야 하므로 짧게 쓴다. 줄바꿈이 생기면
+// 줄마다 높이가 달라져 목록이 들쭉날쭉해진다.
+export function peopleBadgeText(count, isMine) {
+  if (count <= 0) return '가는 사람 없음';
+  if (isMine && count === 1) return '나 혼자 가는 중';
+  if (isMine) return `${count}명 가는 중 (나 포함)`;
+  return `${count}명 가는 중`;
 }
 
 export function renderList(
@@ -172,7 +175,7 @@ function topCard(shelter, count, handlers, activeShelterId, isNearest) {
 
   const badge = document.createElement('p');
   badge.className = count > 0 ? 'card__count' : 'card__count card__count--none';
-  badge.textContent = peopleText(count, shelter.id === activeShelterId);
+  badge.textContent = peopleBadgeText(count, shelter.id === activeShelterId);
   card.appendChild(badge);
 
   const go = document.createElement('button');
