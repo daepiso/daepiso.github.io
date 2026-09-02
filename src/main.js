@@ -493,15 +493,29 @@ function onShare(shelter) {
   openSmsApp(target);
 }
 
-async function onGo(shelter) {
+// 기다리지 않는다. 서버 기록을 await 로 기다렸다가 카카오맵을 열면
+// 모바일 브라우저가 '사용자가 누른 순간'이 아니라고 보고 앱 열기를 막는다.
+// 그러면 '연결중입니다' 화면에 갇힌 채 카카오맵 설치 안내만 뜬다.
+//
+// 회성 님이 실제로 겪으셨다. 처음 한 번은 되고, 다시 들어와 다른 곳을
+// 눌렀을 때부터 안 됐다. 두 번째 start_trip 은 이미 가는 중인 기록을
+// 취소하는 일이 하나 더 붙어 더 느리기 때문이다.
+//
+// 소리로 듣기에서 겪은 것과 같은 함정이다. 사용자가 누른 순간에 해야 할
+// 일은 그 자리에서 곧바로 한다.
+function onGo(shelter) {
   state.target = shelter;
+
+  // 인원 집계는 부가 기능이다. 뒤에서 따라가게 두고 길찾기를 막지 않는다.
   try {
-    await startTrip(shelter.id);
+    startTrip(shelter.id).catch((err) => {
+      console.warn('인원 집계에 기록하지 못했습니다.', err);
+    });
     startArrivalWatch(shelter);
   } catch (err) {
-    // 인원 집계는 부가 기능이다. 실패해도 길찾기는 열어준다.
     console.warn('인원 집계에 기록하지 못했습니다.', err);
   }
+
   window.location.href = buildWalkDirectionsUrl(state.origin, shelter);
 }
 

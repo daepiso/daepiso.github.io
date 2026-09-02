@@ -6,6 +6,7 @@ import {
   COUNT_POLL_INTERVAL_MS,
 } from './constants.js';
 import { haversineMeters } from './geo.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 // ─────────────────────────────── 판정 (순수 함수, 테스트 대상)
 
@@ -65,19 +66,37 @@ function forgetTrip(storage = globalThis.localStorage) {
   } catch { /* 무시 */ }
 }
 
-export async function startTrip(shelterId) {
-  const { db } = await import('./supabase.js');
-  const { error } = await db.rpc('start_trip', {
-    p_device_id: getDeviceId(),
-    p_shelter_id: shelterId,
+// 이것만 supabase 라이브러리를 거치지 않고 직접 부른다. 두 가지 때문이다.
+//
+// 하나. 부르자마자 요청이 나가야 한다. 라이브러리를 쓰면 모듈을 먼저
+// 불러오느라(await import) 한 박자 늦는다. 그 사이에 브라우저가
+// '사용자가 누른 순간'이 아니라고 보고 카카오맵 앱 열기를 막는다.
+//
+// 둘. 곧바로 카카오맵으로 넘어가면 이 페이지가 사라진다. 보통 요청은
+// 그때 취소되는데, keepalive 를 붙이면 끝까지 간다.
+export function startTrip(shelterId) {
+  const 보냄 = fetch(`${SUPABASE_URL}/rest/v1/rpc/start_trip`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_device_id: getDeviceId(), p_shelter_id: shelterId }),
+    keepalive: true,
+  }).then((res) => {
+    if (!res.ok) throw new Error(`이동 시작 기록 실패: ${res.status}`);
   });
-  if (error) throw new Error(`이동 시작 기록 실패: ${error.message}`);
 
+  // 서버 응답을 기다릴 것 없이 바로 건다. 응답이 실패해도
+  // 다음 심장박동이 알아서 정리한다.
   rememberTrip(shelterId);
   clearInterval(heartbeatTimer);
   heartbeatTimer = setInterval(() => {
     sendHeartbeat().catch(() => {});
   }, HEARTBEAT_INTERVAL_MS);
+
+  return 보냄;
 }
 
 export async function sendHeartbeat() {
