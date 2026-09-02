@@ -242,10 +242,22 @@ function rowActions(shelter, handlers) {
   const box = document.createElement('div');
   box.className = 'row__actions';
 
-  const go = document.createElement('button');
+  // 단추가 아니라 진짜 링크로 만든다.
+  //
+  // 코드로 페이지를 넘기면(location.href) 안드로이드 브라우저가
+  // '사람이 누른 것'으로 쳐주지 않아 카카오맵 앱 열기를 막는다.
+  // 그러면 '연결중입니다' 화면에 갇힌 채 설치 안내만 뜬다.
+  // 사람이 직접 누르는 링크는 브라우저가 가장 너그럽게 허용한다.
+  //
+  // 새 탭으로 여는 것도 일부러다. 우리 화면이 그대로 남아 있어야
+  // 카카오맵에서 돌아왔을 때 '뒤로'를 누르지 않고 바로 다른 곳을 고를 수 있다.
+  const go = document.createElement('a');
   go.className = 'btn btn--primary';
-  go.type = 'button';
+  go.href = handlers.goHref(shelter);
+  go.target = '_blank';
+  go.rel = 'noopener';
   go.textContent = '길찾기';
+  // 링크는 그대로 열리게 두고, 인원 집계만 곁들인다.
   go.addEventListener('click', () => handlers.onGo(shelter));
 
   // 가족에게 알리는 것은 '이 대피소로 간다'는 뜻이다.

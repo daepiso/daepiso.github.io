@@ -350,7 +350,7 @@ function draw() {
     activeShelterId: mine,
     nearestId: state.nearestId,
     total: totalNearby(),
-    handlers: { onGo, onShare, onToggleOpen, onToggleFavorite },
+    handlers: { onGo, onShare, onToggleOpen, onToggleFavorite, goHref },
   });
 
   // 소리로 듣기로 띄워둔 문구가 옛 대피소를 가리킨 채 남아 있으면 안 된다.
@@ -493,20 +493,14 @@ function onShare(shelter) {
   openSmsApp(target);
 }
 
-// 기다리지 않는다. 서버 기록을 await 로 기다렸다가 카카오맵을 열면
-// 모바일 브라우저가 '사용자가 누른 순간'이 아니라고 보고 앱 열기를 막는다.
-// 그러면 '연결중입니다' 화면에 갇힌 채 카카오맵 설치 안내만 뜬다.
+// 카카오맵으로 넘어가는 일은 링크(<a href>)가 맡는다. 여기서는 건드리지 않는다.
+// 코드로 페이지를 넘기면 안드로이드 브라우저가 '사람이 누른 것'으로
+// 쳐주지 않아 앱 열기를 막고, '연결중입니다' 화면에 갇힌다.
 //
-// 회성 님이 실제로 겪으셨다. 처음 한 번은 되고, 다시 들어와 다른 곳을
-// 눌렀을 때부터 안 됐다. 두 번째 start_trip 은 이미 가는 중인 기록을
-// 취소하는 일이 하나 더 붙어 더 느리기 때문이다.
-//
-// 소리로 듣기에서 겪은 것과 같은 함정이다. 사용자가 누른 순간에 해야 할
-// 일은 그 자리에서 곧바로 한다.
+// 이 함수는 곁들이는 일만 한다 — 누가 어디로 가는지 세는 것.
+// 서버 응답을 기다리지 않는다. 기다리면 링크가 열리는 것을 늦춘다.
 function onGo(shelter) {
   state.target = shelter;
-
-  // 인원 집계는 부가 기능이다. 뒤에서 따라가게 두고 길찾기를 막지 않는다.
   try {
     startTrip(shelter.id).catch((err) => {
       console.warn('인원 집계에 기록하지 못했습니다.', err);
@@ -515,8 +509,11 @@ function onGo(shelter) {
   } catch (err) {
     console.warn('인원 집계에 기록하지 못했습니다.', err);
   }
+}
 
-  window.location.href = buildWalkDirectionsUrl(state.origin, shelter);
+// 링크에 넣을 주소. 그릴 때 미리 만들어 둔다.
+function goHref(shelter) {
+  return buildWalkDirectionsUrl(state.origin, shelter);
 }
 
 function startArrivalWatch(shelter) {

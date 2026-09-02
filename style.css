@@ -213,3 +213,6 @@ button,input{font:inherit}
 .row__addr{color:var(--muted-strong)}
 .tag--quiet{color:var(--muted-strong)}
 .list__more{color:var(--muted-strong)}
+
+/* 길찾기는 단추가 아니라 진짜 링크다. 겉모습만 단추로 맞춘다. */
+a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
